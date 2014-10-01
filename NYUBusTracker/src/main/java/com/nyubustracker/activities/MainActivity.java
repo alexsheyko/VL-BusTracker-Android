@@ -984,7 +984,8 @@ public class MainActivity extends Activity {
         //int xPos = (canvas.getWidth() / 2) - 2;     //-2 is for regulating the x position offset
 
         //"- ((paint.descent() + paint.ascent()) / 2)" is the distance from the baseline to the center.
-       int yPos = (int) ((canvas.getHeight() / 2)); //- ((paint.descent() + paint.ascent()) / 2)) ;
+        //int yPos = (int) ((canvas.getHeight() / 2)); //- ((paint.descent() + paint.ascent()) / 2)) ;
+        int yPos = (int) ((canvas.getHeight() )); //- ((paint.descent() + paint.ascent()) / 2)) ;
 
         canvas.drawText(text, 1, yPos, paint);
 
