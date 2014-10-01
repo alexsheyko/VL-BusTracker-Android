@@ -957,9 +957,9 @@ public class MainActivity extends Activity {
     private Bitmap getIcoBus(String text,Float angle) {
         //BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow)
 
-        Bitmap bm = BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow)
+        Bitmap bm = BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop) //ic_bus_arrow
                 .copy(Bitmap.Config.ARGB_8888, true);
-        bm = rotateBitmap(bm,angle);
+        //bm = rotateBitmap(bm,angle);
 
         Typeface tf = Typeface.create("Helvetica", Typeface.BOLD);
 
@@ -969,7 +969,7 @@ public class MainActivity extends Activity {
         paint.setTypeface(tf);
         //paint.setTextAlign(Align.CENTER);
         //paint.setTextSize(convertToPixels(context, 11));
-        //paint.setTextSize(20);
+        paint.setTextSize(12);
 
         Rect textRect = new Rect();
         paint.getTextBounds(text, 0, text.length(), textRect);
@@ -985,7 +985,7 @@ public class MainActivity extends Activity {
 
         //"- ((paint.descent() + paint.ascent()) / 2)" is the distance from the baseline to the center.
         //int yPos = (int) ((canvas.getHeight() / 2)); //- ((paint.descent() + paint.ascent()) / 2)) ;
-        int yPos = (int) ((canvas.getHeight() )); //- ((paint.descent() + paint.ascent()) / 2)) ;
+        int yPos = (int) ((canvas.getHeight() /2 ) - ((paint.descent() + paint.ascent()) / 2)) ;
 
         canvas.drawText(text, 1, yPos, paint);
 
