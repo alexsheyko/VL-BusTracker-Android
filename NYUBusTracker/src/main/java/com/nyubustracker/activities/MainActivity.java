@@ -10,7 +10,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.location.Location;
 import android.location.LocationManager;
@@ -123,6 +127,7 @@ public class MainActivity extends Activity {
     private StickyListHeadersListView timesList;
     private Timer timeUntilTimer;  // Timer used to refresh the "time until next bus" every minute, on the minute.
     private Timer busRefreshTimer; // Timer used to refresh the bus locations every few seconds.
+    private Timer busDownloadTimer; // Timer used to refresh the bus locations every few seconds.
     private GoogleMap mMap;     // Map to display all stops, segments, and buses.
     private boolean offline = true;
     private MultipleOrientationSlidingDrawer drawer;
@@ -398,6 +403,7 @@ public class MainActivity extends Activity {
         cacheStartAndEndStops();
         if (timeUntilTimer != null) timeUntilTimer.cancel();
         if (busRefreshTimer != null) busRefreshTimer.cancel();
+        if (busDownloadTimer != null) busDownloadTimer.cancel();
     }
 
     @Override
@@ -415,7 +421,7 @@ public class MainActivity extends Activity {
         cacheStartAndEndStops();      // Remember user's preferences across lifetimes.
         if (timeUntilTimer != null)
             timeUntilTimer.cancel();           // Don't need a timer anymore -- must be recreated onResume.
-        if (busRefreshTimer != null) busRefreshTimer.cancel();
+        if (busDownloadTimer != null) busDownloadTimer.cancel();
     }
 
     @Override
@@ -461,9 +467,10 @@ public class MainActivity extends Activity {
 
     private void renewBusRefreshTimer() {
         if (busRefreshTimer != null) busRefreshTimer.cancel();
+        if (busDownloadTimer != null) busDownloadTimer.cancel();
 
-        busRefreshTimer = new Timer();
-        busRefreshTimer.scheduleAtFixedRate(new TimerTask() {
+        busDownloadTimer = new Timer();
+        busDownloadTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 runOnUiThread(new Runnable() {
@@ -494,7 +501,23 @@ public class MainActivity extends Activity {
                 });
             }
         }, 0, BUSES_RELOAD_TIMEOUT * 1000); //  1500L);
+
+        busRefreshTimer = new Timer();
+        busRefreshTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showBusOnMap();
+                    }
+                });
+            }
+        }, 0, 1000); //  1500L);
+
     }
+
+
 
     /*
     Returns the best location we can, checking every available location provider.
@@ -729,6 +752,7 @@ public class MainActivity extends Activity {
     private void setNextBusTime() {
         if (timeUntilTimer != null) timeUntilTimer.cancel();
         if (busRefreshTimer != null) busRefreshTimer.cancel();
+        if (busDownloadTimer != null) busDownloadTimer.cancel();
 
         // Find the best pair of start and end related to this pair, since Stops can "combine"
         // and have child stops, like at 14th Street and 3rd Ave.
@@ -930,6 +954,53 @@ public class MainActivity extends Activity {
         dialog.show();
     }
 
+    private Bitmap getIcoBus(String text,Float angle) {
+        //BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow)
+
+        Bitmap bm = BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow)
+                .copy(Bitmap.Config.ARGB_8888, true);
+        bm = rotateBitmap(bm,angle);
+
+        Typeface tf = Typeface.create("Helvetica", Typeface.BOLD);
+
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.FILL);
+        //paint.setColor(Color.WHITE);
+        paint.setTypeface(tf);
+        //paint.setTextAlign(Align.CENTER);
+        //paint.setTextSize(convertToPixels(context, 11));
+        //paint.setTextSize(20);
+
+        Rect textRect = new Rect();
+        paint.getTextBounds(text, 0, text.length(), textRect);
+
+        Canvas canvas = new Canvas(bm);
+
+        //If the text is bigger than the canvas , reduce the font size
+        //if(textRect.width() >= (canvas.getWidth() - 4))     //the padding on either sides is considered as 4, so as to appropriately fit in the text
+        //    paint.setTextSize(convertToPixels(context, 7));        //Scaling needs to be used for different dpi's
+
+        //Calculate the positions
+        //int xPos = (canvas.getWidth() / 2) - 2;     //-2 is for regulating the x position offset
+
+        //"- ((paint.descent() + paint.ascent()) / 2)" is the distance from the baseline to the center.
+       int yPos = (int) ((canvas.getHeight() / 2)); //- ((paint.descent() + paint.ascent()) / 2)) ;
+
+        canvas.drawText(text, 1, yPos, paint);
+
+        return  bm;
+    }
+
+
+
+    public static int convertToPixels(Context context, int nDP)
+    {
+        final float conversionScale = context.getResources().getDisplayMetrics().density;
+
+        return (int) ((nDP * conversionScale) + 0.5f) ;
+
+    }
+
     private void showBusOnMap(){
 
         Long t= System.currentTimeMillis();
@@ -948,13 +1019,16 @@ public class MainActivity extends Activity {
                                     .position(b.getLocation())
                                     .icon(
                                             BitmapDescriptorFactory.fromBitmap(
-                                                    rotateBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow), b.getHeading()
-                                                    )
+//                                                    rotateBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow), b.getHeading()
+                                                    //rotateBitmap(writeTextOnDrawable(b.getTitle()), b.getHeading()
+                                                    getIcoBus(b.getTitle(),b.getHeading())
+                                                    //)
+
                                             )
                                     )
                                     .anchor(0.5f, 0.5f)
                                     .title(b.getTitle())
-                                    .snippet("Population: " + b.getTitle())
+                                    .snippet("Population: " + b.getBody())
                     );
                     Bus2Mark.put(b.getID(), mMarker);
                 }else{ //change pos
@@ -989,7 +1063,7 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings("UnusedParameters")
     public void createInfoDialog1(View view) {
-        final LatLng VL_CENTER = new LatLng(43.126089, 131.940317);
+        final LatLng VL_CENTER = new LatLng(43.155152,131.910735);
         LatLng POS_ON_MAP = new LatLng(43.126089, 131.940317);
         CameraUpdate center= CameraUpdateFactory.newLatLng(VL_CENTER);
         //CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);

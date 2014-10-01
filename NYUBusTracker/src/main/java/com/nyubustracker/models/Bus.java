@@ -15,6 +15,7 @@ public class Bus {
     private String heading = "";
     private String route;
     private String title ="";
+    private String body ="";
 
     public Bus(String mVehicleID) {
         vehicleID = mVehicleID;
@@ -40,10 +41,11 @@ public class Bus {
                     String busLng = d.getString(3);
                     String busRoute = Integer.toString(d.getInt(2));
                     String vehicleID = d.getString(0);
-                    String busHeading = "45";
-                    String busTitle = d.getString(1);
+                    String busHeading = d.getString(5);
+                    String busTitle = d.getString(6);
+                    String busBody = d.getString(1);
                     Bus b = sharedManager.getBus(vehicleID);
-                    b.setHeading(busHeading).setLocation(busLat, busLng).setRoute(busRoute).setTitle(busTitle);
+                    b.setHeading(busHeading).setLocation(busLat, busLng).setRoute(busRoute).setTitle(busTitle).setBody(busBody);
 
 
                 }
@@ -135,6 +137,15 @@ public class Bus {
 
     Bus setTitle(String mTitle) {
         title = mTitle;
+        return this;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    Bus setBody(String mBody) {
+        body = mBody;
         return this;
     }
 

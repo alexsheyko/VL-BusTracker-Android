@@ -201,6 +201,7 @@ public class MultipleOrientationSlidingDrawer extends ViewGroup {
      * @param defStyle The style to apply to this widget.
      */
     public MultipleOrientationSlidingDrawer(Context context, AttributeSet attrs, int defStyle) {
+
         super(context, attrs, defStyle);
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MultipleOrientationSlidingDrawer, defStyle, 0);
 
@@ -215,7 +216,7 @@ public class MultipleOrientationSlidingDrawer extends ViewGroup {
 
         int handleId = a.getResourceId(R.styleable.MultipleOrientationSlidingDrawer_handle, 0);
         if (handleId == 0) {
-            throw new IllegalArgumentException("The handle attribute is required and must refer " + "to a valid child.");
+            //throw new IllegalArgumentException("The handle attribute is required and must refer " + "to a valid child.");
         }
 
         int contentId = a.getResourceId(R.styleable.MultipleOrientationSlidingDrawer_content, 0);
@@ -241,6 +242,7 @@ public class MultipleOrientationSlidingDrawer extends ViewGroup {
         //        a.recycle();
 
         setAlwaysDrawnWithCacheEnabled(false);
+
     }
 
     /**
@@ -499,7 +501,7 @@ public class MultipleOrientationSlidingDrawer extends ViewGroup {
             return;
         }
 
-        // Something changed in the content, we need to honor the layout request
+        // Something changed in the content, we need to hor the layout request
         // before creating the cached bitmap
         final View content = mContent;
         if (content.isLayoutRequested()) {
