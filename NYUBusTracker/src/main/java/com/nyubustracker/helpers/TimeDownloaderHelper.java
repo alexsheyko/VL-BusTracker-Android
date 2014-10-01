@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.nyubustracker.activities.MainActivity;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -29,4 +30,7 @@ public class TimeDownloaderHelper implements DownloaderHelper {
                     : "TimeDownloaderHelper#parse given empty jsonObject");
         }
     }
+    public void parseArray(JSONArray jsonObject) throws JSONException, IOException {
+    }
+
 }

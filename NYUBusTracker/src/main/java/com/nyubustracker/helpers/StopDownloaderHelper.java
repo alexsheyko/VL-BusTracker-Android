@@ -2,6 +2,7 @@ package com.nyubustracker.helpers;
 
 import com.nyubustracker.models.Stop;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,4 +16,7 @@ public class StopDownloaderHelper implements DownloaderHelper {
         Stop.parseJSON(jsonObject);
         Downloader.cache(STOP_JSON_FILE, jsonObject);
     }
+    public void parseArray(JSONArray jsonObject) throws JSONException, IOException {
+    }
+
 }

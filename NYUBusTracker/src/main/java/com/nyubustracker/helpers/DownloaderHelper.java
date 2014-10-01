@@ -1,5 +1,6 @@
 package com.nyubustracker.helpers;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,5 +16,12 @@ public interface DownloaderHelper {
     static final String AMAZON_URL = "https://s3.amazonaws.com/nyubustimes/1.0/";
     static final String VERSION_URL = AMAZON_URL + "version.json";
 
+    //VLBus
+    static final String QUERY_age = Downloader.makeQuery("age", "1800", "UTF-8");
+    static final String BUS_VL_URL = "http://map.vl.ru/api/transport/bus";
+    static final String CUR_URL = BUS_VL_URL+"/current?id_route=false&"+QUERY_age;
+
+
     public abstract void parse(JSONObject jsonObject) throws JSONException, IOException;
+    public abstract void parseArray(JSONArray jsonObject) throws JSONException, IOException;
 }

@@ -57,6 +57,7 @@ import com.nyubustracker.adapters.TimeAdapter;
 import com.nyubustracker.helpers.BusDownloaderHelper;
 import com.nyubustracker.helpers.BusManager;
 import com.nyubustracker.helpers.Downloader;
+import com.nyubustracker.helpers.DownloaderArray;
 import com.nyubustracker.helpers.DownloaderHelper;
 import com.nyubustracker.helpers.MultipleOrientationSlidingDrawer;
 import com.nyubustracker.helpers.RouteDownloaderHelper;
@@ -114,6 +115,7 @@ public class MainActivity extends Activity {
     private Stop endStop;       // Keep track of the desired end location.
     private static List<Route> routesBetweenStartAndEnd;        // List of all routes between start and end.
     private HashMap<String, Boolean> clickableMapMarkers;   // Hash of all markers which are clickable (so we don't zoom in on buses).
+    private HashMap<String, Marker> Bus2Mark;   //
     private ArrayList<Marker> busesOnMap = new ArrayList<Marker>();
     private TextSwitcher mSwitcher;
     private String mSwitcherCurrentText;
@@ -126,6 +128,7 @@ public class MainActivity extends Activity {
     private MultipleOrientationSlidingDrawer drawer;
     public static int downloadsOnTheWire = 0;
     public static Handler UIHandler;
+    private static final int BUSES_RELOAD_TIMEOUT = 5; //// в секундах
 
     static {
         UIHandler = new Handler(Looper.getMainLooper());
@@ -143,7 +146,8 @@ public class MainActivity extends Activity {
 
     private void setUpMapIfNeeded() {
         // First check if GPS is available.
-        final LatLng BROADWAY = new LatLng(40.729146, -73.993756);
+        //final LatLng BROADWAY = new LatLng(40.729146, -73.993756);
+        final LatLng BROADWAY = new LatLng(43.126089, 131.940317); // VL_CENTER
         int retCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
         if (retCode != ConnectionResult.SUCCESS) {
             GooglePlayServicesUtil.getErrorDialog(retCode, this, 1).show();
@@ -157,12 +161,22 @@ public class MainActivity extends Activity {
                 // The Map is verified. It is now safe to manipulate the map.
                 mMap.getUiSettings().setRotateGesturesEnabled(false);
                 mMap.getUiSettings().setZoomControlsEnabled(false);
-                mMap.setMyLocationEnabled(true);
+                //mMap.setMyLocationEnabled(true);
+                /*
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
                     public boolean onMarkerClick(Marker marker) {
                         return !clickableMapMarkers.get(marker.getId());    // Return true to consume the event.
                     }
+                });
+                */
+                mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener(){
+                   @Override
+                    public void onCameraChange(com.google.android.gms.maps.model.CameraPosition position)
+                   {
+                       showBusOnMap();
+                   }
+
                 });
                 CameraUpdate center=
                         CameraUpdateFactory.newLatLng(BROADWAY);
@@ -257,7 +271,8 @@ public class MainActivity extends Activity {
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "onCreate!");
         setContentView(R.layout.activity_main);
 
-        ((NYUBusTrackerApplication) getApplication()).getTracker();
+        //((NYUBusTrackerApplication) getApplication()).getTracker();
+        Bus2Mark = new HashMap<String, Marker>();
 
         oncePreferences = getSharedPreferences(RUN_ONCE_PREF, MODE_PRIVATE);
 
@@ -360,8 +375,8 @@ public class MainActivity extends Activity {
         super.onStart();
         //        if (LOCAL_LOGV) Log.v("General Debugging", "onStart!");
         onStartTime = System.currentTimeMillis();
-        GoogleAnalytics.getInstance(this).reportActivityStart(this);
-        FlurryAgent.onStartSession(this, getString(LOCAL_LOGV ? R.string.flurry_debug_api_key : R.string.flurry_api_key));
+        //GoogleAnalytics.getInstance(this).reportActivityStart(this);
+        //FlurryAgent.onStartSession(this, getString(LOCAL_LOGV ? R.string.flurry_debug_api_key : R.string.flurry_api_key));
     }
 
     @Override
@@ -389,8 +404,8 @@ public class MainActivity extends Activity {
     public void onStop() {
         super.onStop();
         //        if (LOCAL_LOGV) Log.v("General Debugging", "onStop!");
-        GoogleAnalytics.getInstance(this).reportActivityStop(this);
-        FlurryAgent.onEndSession(this);
+        //GoogleAnalytics.getInstance(this).reportActivityStop(this);
+        //FlurryAgent.onEndSession(this);
     }
 
     @Override
@@ -458,7 +473,9 @@ public class MainActivity extends Activity {
                         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
                         if (networkInfo != null && networkInfo.isConnected()) {
                             offline = false;
-                            new Downloader(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.VEHICLES_URL);
+                            //asv
+                            //new Downloader(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.VEHICLES_URL);
+                            new DownloaderArray(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
                             updateMapWithNewBusLocations();
                             if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current start: " + startStop);
                             if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current end  : " + endStop);
@@ -476,7 +493,7 @@ public class MainActivity extends Activity {
                     }
                 });
             }
-        }, 0, 1500L);
+        }, 0, BUSES_RELOAD_TIMEOUT * 1000); //  1500L);
     }
 
     /*
@@ -516,6 +533,8 @@ public class MainActivity extends Activity {
 
     // Clear the map of all buses and put them all back on in their new locations.
     private void updateMapWithNewBusLocations() {
+        showBusOnMap();
+/*
         if (routesBetweenStartAndEnd != null) {
             BusManager sharedManager = BusManager.getBusManager();
             for (Marker m : busesOnMap) {
@@ -534,7 +553,13 @@ public class MainActivity extends Activity {
                     for (Bus b : sharedManager.getBuses()) {
                         //if (LOCAL_LOGV) Log.v("BusLocations", "bus id: " + b.getID() + ", bus route: " + b.getRoute() + " vs route: " + r.getID());
                         if (b.getRoute().equals(r.getID())) {
-                            Marker mMarker = mMap.addMarker(new MarkerOptions().position(b.getLocation()).icon(BitmapDescriptorFactory.fromBitmap(rotateBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow), b.getHeading()))).anchor(0.5f, 0.5f));
+                            Marker mMarker = mMap.addMarker(new MarkerOptions()
+                                    .position(b.getLocation())
+                                    .icon(BitmapDescriptorFactory.fromBitmap(
+                                            rotateBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow), b.getHeading())
+                                    ))
+                                    .anchor(0.5f, 0.5f)
+                            );
                             clickableMapMarkers.put(mMarker.getId(), false);    // Unable to click on buses.
                             busesOnMap.add(mMarker);
                         }
@@ -545,6 +570,7 @@ public class MainActivity extends Activity {
         else {
             mMap.clear();
         }
+        */
     }
 
     // Clear the map, because we may have just changed what route we wish to display. Then, add everything back onto the map.
@@ -602,10 +628,10 @@ public class MainActivity extends Activity {
         if (validBuilder) {
             LatLngBounds bounds = builder.build();
             try {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 30));
+                //mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 30));
             } catch (IllegalStateException e) {      // In case the view is not done being created.
                 //e.printStackTrace();
-                mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, this.getResources().getDisplayMetrics().widthPixels, this.getResources().getDisplayMetrics().heightPixels, 100));
+                //mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, this.getResources().getDisplayMetrics().widthPixels, this.getResources().getDisplayMetrics().heightPixels, 100));
             }
         }
     }
@@ -902,6 +928,99 @@ public class MainActivity extends Activity {
         Dialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(true);
         dialog.show();
+    }
+
+    private void showBusOnMap(){
+
+        Long t= System.currentTimeMillis();
+
+        ((TextView) findViewById(R.id.next_route)).setText(""+t);
+
+        BusManager sharedManager = BusManager.getBusManager();
+        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+
+        for (Bus b : sharedManager.getBuses()) {
+            //if (LOCAL_LOGV) Log.v("BusLocations", "bus id: " + b.getID() + ", bus route: " + b.getRoute() + " vs route: " + r.getID());
+            //if (b.getRoute().equals(r.getID())) {
+            if(bounds.contains(b.getLocation())){
+                if(!Bus2Mark.containsKey(b.getID())) {
+                    Marker mMarker = mMap.addMarker(new MarkerOptions()
+                                    .position(b.getLocation())
+                                    .icon(
+                                            BitmapDescriptorFactory.fromBitmap(
+                                                    rotateBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow), b.getHeading()
+                                                    )
+                                            )
+                                    )
+                                    .anchor(0.5f, 0.5f)
+                                    .title(b.getTitle())
+                                    .snippet("Population: " + b.getTitle())
+                    );
+                    Bus2Mark.put(b.getID(), mMarker);
+                }else{ //change pos
+                    Marker mMarker = Bus2Mark.get(b.getID());
+                    if (mMarker!= null){
+                        mMarker.setPosition(b.getLocation());
+                    }
+                }
+                //Bus2Mark.put(b.getID(),mMarker);
+            }else{
+                if(!Bus2Mark.containsKey(b.getID())) {
+
+                }else{
+                    Marker mMarker = Bus2Mark.get(b.getID());
+                    if (mMarker!= null){
+                        mMarker.remove();
+                        Bus2Mark.remove(b.getID());
+                    }
+                }
+
+            }
+            //clickableMapMarkers.put(mMarker.getId(), false);    // Unable to click on buses.
+            //busesOnMap.add(mMarker);
+            //}
+            //POS_ON_MAP = b.getLocation();
+        }
+
+        //center=CameraUpdateFactory.newLatLng(POS_ON_MAP);
+        // mMap.moveCamera(center);
+
+    }
+
+    @SuppressWarnings("UnusedParameters")
+    public void createInfoDialog1(View view) {
+        final LatLng VL_CENTER = new LatLng(43.126089, 131.940317);
+        LatLng POS_ON_MAP = new LatLng(43.126089, 131.940317);
+        CameraUpdate center= CameraUpdateFactory.newLatLng(VL_CENTER);
+        //CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
+
+        mMap.moveCamera(center);
+        //mMap.animateCamera(zoom);
+
+        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+        if (networkInfo != null && networkInfo.isConnected()) {
+            offline = false;
+            //new Downloader(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
+            new DownloaderArray(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
+            //updateMapWithNewBusLocations();
+            //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current start: " + startStop);
+            //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current end  : " + endStop);
+        }
+        else if (!offline) {
+            offline = true;
+            Context context = getApplicationContext();
+            CharSequence text = getString(R.string.unable_to_connect);
+            int duration = Toast.LENGTH_SHORT;
+
+            if (context != null) {
+                Toast.makeText(context, text, duration).show();
+            }
+        }
+        showBusOnMap();
+
+
+
     }
 
     @SuppressWarnings("UnusedParameters")

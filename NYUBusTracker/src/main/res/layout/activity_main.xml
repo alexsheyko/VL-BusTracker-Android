@@ -1,5 +1,6 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/time_list_background">
 
@@ -132,7 +133,8 @@
               xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="fill_parent"
-              android:layout_below="@+id/safe_ride_button"/>
+              android:layout_below="@+id/safe_ride_button"
+        tools:layout="@layout/text_bubble" />
 
     <com.nyubustracker.helpers.MultipleOrientationSlidingDrawer
         android:id="@+id/sliding_drawer"
@@ -209,5 +211,13 @@
         android:layout_alignParentEnd="true"
         android:background="@drawable/ic_action_about"
         android:onClick="createInfoDialog"/>
+
+    <Button
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:background="@drawable/ic_action_about"
+        android:onClick="createInfoDialog1"/>
 
 </RelativeLayout>

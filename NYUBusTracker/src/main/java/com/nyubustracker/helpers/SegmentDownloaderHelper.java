@@ -1,5 +1,6 @@
 package com.nyubustracker.helpers;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -12,4 +13,7 @@ public class SegmentDownloaderHelper implements DownloaderHelper {
         BusManager.parseSegments(jsonObject);
         Downloader.cache(SEGMENT_JSON_FILE, jsonObject);
     }
+    public void parseArray(JSONArray jsonObject) throws JSONException, IOException {
+    }
+
 }

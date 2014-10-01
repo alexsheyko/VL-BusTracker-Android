@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.nyubustracker.activities.MainActivity;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,4 +35,7 @@ public class VersionDownloaderHelper implements DownloaderHelper {
             else if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "*   Not actually downloading it, because we already have the current version.");
         }
     }
+    public void parseArray(JSONArray jsonObject) throws JSONException, IOException {
+    }
+
 }

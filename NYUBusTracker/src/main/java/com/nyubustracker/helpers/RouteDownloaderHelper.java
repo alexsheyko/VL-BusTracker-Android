@@ -2,6 +2,7 @@ package com.nyubustracker.helpers;
 
 import com.nyubustracker.models.Route;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,5 +15,7 @@ public class RouteDownloaderHelper implements DownloaderHelper {
     public void parse(JSONObject jsonObject) throws JSONException, IOException {
         Route.parseJSON(jsonObject);
         Downloader.cache(ROUTE_JSON_FILE, jsonObject);
+    }
+    public void parseArray(JSONArray jsonObject) throws JSONException, IOException {
     }
 }

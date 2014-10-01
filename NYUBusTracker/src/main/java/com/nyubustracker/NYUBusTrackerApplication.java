@@ -16,7 +16,7 @@ public class NYUBusTrackerApplication extends Application {
     }
 
     public synchronized Tracker getTracker() {
-        if (tracker == null) {
+ /*       if (tracker == null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
             tracker = analytics.newTracker(R.xml.app_tracker);
             String id = MainActivity.LOCAL_LOGV
@@ -24,6 +24,7 @@ public class NYUBusTrackerApplication extends Application {
                     : getString(R.string.google_analytics_tracker);
             tracker.setAppId(id);
         }
+        */
         return tracker;
     }
 }
