@@ -1,5 +1,6 @@
-NYU Bus Tracker
+VL Bus Tracker
 ===============
+this fork for Vladivostok (Russia) Bus http://map.vl.ru
 
 [![Build Status](https://travis-ci.org/tpalsulich/NYU-BusTracker-Android.svg?branch=master)]
 (https://travis-ci.org/tpalsulich/NYU-BusTracker-Android)
