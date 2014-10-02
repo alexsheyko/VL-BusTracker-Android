@@ -22,6 +22,7 @@ import java.util.TimerTask;
 
 public final class BusManager {
     public static final String TAG_DATA = "data";
+    public static final String TAG_STOP = "stops";
     public static final String TAG_LONG_NAME = "long_name";
     public static final String TAG_LOCATION = "location";
     public static final String TAG_LAT = "lat";

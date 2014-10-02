@@ -37,30 +37,35 @@ public class Route {
     public static void parseJSON(JSONObject routesJson) throws JSONException {
         JSONArray jRoutes = new JSONArray();
         BusManager sharedManager = BusManager.getBusManager();
-        if (routesJson != null)
-            jRoutes = routesJson.getJSONObject(BusManager.TAG_DATA).getJSONArray("72");
+        if (routesJson != null) jRoutes = routesJson.getJSONArray(BusManager.TAG_ROUTES);
+        if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Parsing # routes: " + jRoutes.length());
         for (int j = 0; j < jRoutes.length(); j++) {
-            JSONObject routeObject = jRoutes.getJSONObject(j);
-            String routeLongName = routeObject.getString(BusManager.TAG_LONG_NAME);
-            String routeID = routeObject.getString(BusManager.TAG_ROUTE_ID);
+            //JSONObject routeObject = jRoutes.getJSONObject(j);
+            JSONArray routeObject = jRoutes.getJSONArray(j);
+            String routeLongName = routeObject.getString(1);
+            String routeID = routeObject.getString(0);
             Route r = sharedManager.getRoute(routeLongName, routeID);
-            JSONArray stops = routeObject.getJSONArray(BusManager.TAG_STOPS);
+            JSONArray stops = routeObject.getJSONArray(2);
             for (int i = 0; i < stops.length(); i++) {
                 r.addStop(i, sharedManager.getStopByID(stops.getString(i)));
             }
+            /*
             JSONArray segments = routeObject.getJSONArray(BusManager.TAG_SEGMENTS);
             if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Found " + segments.length() + " segments for route " + routeID);
             for (int i = 0; i < segments.length(); i++) {
                 //if (MainActivity.LOCAL_LOGV) Log.v("MapDebugging", "parseJSON of Route adding segment ID " + segments.getJSONArray(i).getString(0) + " for " + routeID + "(" + r.getSegmentIDs().size() + " total)");
                 r.getSegmentIDs().add(segments.getJSONArray(i).getString(0));
             }
+            */
             sharedManager.addRoute(r);
             //if (MainActivity.LOCAL_LOGV) Log.v("JSONDebug", "Route name: " + routeLongName + " | ID:" + routeID + " | Number of stops: " + sharedManager.getRouteByID(routeID).getStops().size());
         }
     }
 
     void addStop(int index, Stop stop) {
-        if (stops.contains(stop)) stops.remove(stop);
+        //if (stops.contains(stop)) stops.remove(stop);
+        //if do remove need change index -1
+        //what do? if first stop == last
         if (stops.size() == index) stops.add(stop);
         else stops.add(index, stop);
     }

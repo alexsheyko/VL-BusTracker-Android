@@ -58,6 +58,7 @@ import com.nyubustracker.NYUBusTrackerApplication;
 import com.nyubustracker.R;
 import com.nyubustracker.adapters.StopAdapter;
 import com.nyubustracker.adapters.TimeAdapter;
+import com.nyubustracker.helpers.AggregateDownloaderHelper;
 import com.nyubustracker.helpers.BusDownloaderHelper;
 import com.nyubustracker.helpers.BusManager;
 import com.nyubustracker.helpers.Downloader;
@@ -93,7 +94,7 @@ import java.util.TimerTask;
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 public class MainActivity extends Activity {
-    public static final boolean LOCAL_LOGV = false;
+    public static final boolean LOCAL_LOGV = true;
     private static final String RUN_ONCE_PREF = "runOnce";
     private static final String STOP_PREF = "stops";
     private static final String START_STOP_PREF = "startStop";
@@ -134,6 +135,7 @@ public class MainActivity extends Activity {
     public static int downloadsOnTheWire = 0;
     public static Handler UIHandler;
     private static final int BUSES_RELOAD_TIMEOUT = 5; //// в секундах
+    public static final String STOP_ID_ANY = "-any-"; //// в секундах
 
     static {
         UIHandler = new Handler(Looper.getMainLooper());
@@ -165,7 +167,7 @@ public class MainActivity extends Activity {
             if (mMap != null) {
                 // The Map is verified. It is now safe to manipulate the map.
                 mMap.getUiSettings().setRotateGesturesEnabled(false);
-                mMap.getUiSettings().setZoomControlsEnabled(false);
+                mMap.getUiSettings().setZoomControlsEnabled(true);
                 //mMap.setMyLocationEnabled(true);
                 /*
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -219,20 +221,22 @@ public class MainActivity extends Activity {
     }
 
     private void downloadEverything(boolean block) {
-        deleteEverythingInMemory();
+        //deleteEverythingInMemory();
         ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
             offline = false;
             // Download and parse everything, put it all in persistent memory, continue.
-            if (block) progressDialog = ProgressDialog.show(this, getString(R.string.downloading), getString(R.string.wait), true, false);
-            else progressDialog = null;
+            //if (block) progressDialog = ProgressDialog.show(this, getString(R.string.downloading), getString(R.string.wait), true, false);
+            //else progressDialog = null;
+
             Context context = getApplicationContext();
-            downloadsOnTheWire += 4;
-            new Downloader(new StopDownloaderHelper(), context).execute(DownloaderHelper.STOPS_URL);
-            new Downloader(new RouteDownloaderHelper(), context).execute(DownloaderHelper.ROUTES_URL);
-            new Downloader(new SegmentDownloaderHelper(), context).execute(DownloaderHelper.SEGMENTS_URL);
-            new Downloader(new VersionDownloaderHelper(), context).execute(DownloaderHelper.VERSION_URL);
+            downloadsOnTheWire += 1; //4;
+            //new Downloader(new StopDownloaderHelper(), context).execute(DownloaderHelper.STOPS_URL);
+            //new Downloader(new RouteDownloaderHelper(), context).execute(DownloaderHelper.ROUTES_URL);
+            //new Downloader(new SegmentDownloaderHelper(), context).execute(DownloaderHelper.SEGMENTS_URL);
+            //new Downloader(new VersionDownloaderHelper(), context).execute(DownloaderHelper.VERSION_URL);
+            new Downloader(new AggregateDownloaderHelper(), context).execute(DownloaderHelper.AGR_URL);
         }
         else if (!offline) {    // Only show the offline dialog once.
             offline = true;
@@ -256,11 +260,12 @@ public class MainActivity extends Activity {
                 runOnUI(new Runnable() {
                 @Override
                 public void run() {
-                        Stop broadway = BusManager.getBusManager().getStopByName("715 Broadway @ Washington Square");
+                    progressDialog.dismiss();
+                    //Toast.makeText(context, "Downloading finished!", Toast.LENGTH_SHORT).show();
+                    Stop broadway = BusManager.getBusManager().getStopByName("715 Broadway @ Washington Square");
                         if (broadway != null) {
                             context.getSharedPreferences(Stop.FAVORITES_PREF, MODE_PRIVATE).edit().putBoolean(broadway.getID(), true).apply();
                             broadway.setFavorite(true);
-                            progressDialog.dismiss();
                         }
                     }
                 });
@@ -318,6 +323,10 @@ public class MainActivity extends Activity {
         timesAdapter = new TimeAdapter(getApplicationContext(), new ArrayList<Time>());
         timesList.setAdapter(timesAdapter);
 
+        downloadEverything(true);
+        renewBusRefreshTimer();
+
+        /*
         if (oncePreferences.getBoolean(FIRST_TIME, true)) {
             if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Downloading because of first time");
             downloadEverything(true);
@@ -373,6 +382,7 @@ public class MainActivity extends Activity {
                 updateMapWithNewStartOrEnd();
             }
         }
+        */
     }
 
     @Override
@@ -388,10 +398,12 @@ public class MainActivity extends Activity {
     public void onResume() {
         super.onResume();
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "onResume!");
+
+        renewBusRefreshTimer();
+        setUpMapIfNeeded();
+
         if (endStop != null && startStop != null) {
             renewTimeUntilTimer();
-            renewBusRefreshTimer();
-            setUpMapIfNeeded();
             setStartAndEndStops();
         }
     }
@@ -422,6 +434,7 @@ public class MainActivity extends Activity {
         if (timeUntilTimer != null)
             timeUntilTimer.cancel();           // Don't need a timer anymore -- must be recreated onResume.
         if (busDownloadTimer != null) busDownloadTimer.cancel();
+
     }
 
     @Override
@@ -541,6 +554,7 @@ public class MainActivity extends Activity {
         String start = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getString(START_STOP_PREF, "715 Broadway @ Washington Square");
         if (startStop == null) setStartStop(BusManager.getBusManager().getStopByName(start));
         if (endStop == null) setEndStop(BusManager.getBusManager().getStopByName(end));
+        /*
         Location l = getLocation();
         if (l != null && System.currentTimeMillis() - onStartTime < 1000) {
             Location startLoc = new Location(""), endLoc = new Location("");
@@ -552,13 +566,14 @@ public class MainActivity extends Activity {
                 setStartStop(endStop);
             }
         }
+        */
     }
 
     // Clear the map of all buses and put them all back on in their new locations.
     private void updateMapWithNewBusLocations() {
         showBusOnMap();
-/*
-        if (routesBetweenStartAndEnd != null) {
+
+/*        if (routesBetweenStartAndEnd != null) {
             BusManager sharedManager = BusManager.getBusManager();
             for (Marker m : busesOnMap) {
                 m.remove();
@@ -600,23 +615,25 @@ public class MainActivity extends Activity {
     private void updateMapWithNewStartOrEnd() {
         // Can't update without any routes...
         if (LOCAL_LOGV) Log.v(LOG_TAG, "routesBetween is " + ((routesBetweenStartAndEnd == null) ? "" : "not ") + "null");
+        /*
         if (routesBetweenStartAndEnd == null) {
             mMap.clear();
             return;
         }
+        */
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Have " + routesBetweenStartAndEnd.size() + " routes to show.");
-        setUpMapIfNeeded();
-        mMap.clear();
+        //setUpMapIfNeeded();
+        //mMap.clear();
         clickableMapMarkers = new HashMap<String, Boolean>();
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         boolean validBuilder = false;
         boolean somethingActive = false;    // Used to make sure we put at least one set of segments on the map.
+        //for (Route r : routesBetweenStartAndEnd) {
+        //    somethingActive = somethingActive || r.isActive(startStop);
+        //}
+        //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Something active: " + somethingActive);
         for (Route r : routesBetweenStartAndEnd) {
-            somethingActive = somethingActive || r.isActive(startStop);
-        }
-        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Something active: " + somethingActive);
-        for (Route r : routesBetweenStartAndEnd) {
-            if ((r.isActive(startStop) || !somethingActive) && !r.getSegments().isEmpty()) {
+            //if ((r.isActive(startStop) || !somethingActive) && !r.getSegments().isEmpty()) {
                 somethingActive = true;
                 if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Updating map with route: " + r.getLongName());
                 for (Stop s : r.getStops()) {
@@ -631,6 +648,7 @@ public class MainActivity extends Activity {
                     }
                 }
                 updateMapWithNewBusLocations();
+               /*
                 // Adds the segments of every Route to the map.
                 if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, r + " has " + r.getSegments().size() + " segments.");
                 for (PolylineOptions p : r.getSegments()) {
@@ -646,7 +664,8 @@ public class MainActivity extends Activity {
                     }
                     else if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Segment was null for " + r.getID());
                 }
-            }
+                */
+            //}
         }
         if (validBuilder) {
             LatLngBounds bounds = builder.build();
@@ -694,7 +713,7 @@ public class MainActivity extends Activity {
                     stopIndex++;
                 }
                 if (stopIndex < connected.size()) setEndStop(connected.get(stopIndex));
-                else downloadEverything(true);
+                //else downloadEverything(true);
             }
         }
     }
@@ -751,8 +770,8 @@ public class MainActivity extends Activity {
 
     private void setNextBusTime() {
         if (timeUntilTimer != null) timeUntilTimer.cancel();
-        if (busRefreshTimer != null) busRefreshTimer.cancel();
-        if (busDownloadTimer != null) busDownloadTimer.cancel();
+        //if (busRefreshTimer != null) busRefreshTimer.cancel();
+        //if (busDownloadTimer != null) busDownloadTimer.cancel();
 
         // Find the best pair of start and end related to this pair, since Stops can "combine"
         // and have child stops, like at 14th Street and 3rd Ave.
@@ -818,7 +837,7 @@ public class MainActivity extends Activity {
             findViewById(R.id.safe_ride_button).setVisibility(View.GONE);
         }
         else showSafeRideInfoIfNeeded(currentTime);
-        renewBusRefreshTimer();
+        //renewBusRefreshTimer();
         renewTimeUntilTimer();
     }
 
@@ -888,6 +907,10 @@ public class MainActivity extends Activity {
                 public void onClick(View view) {
                     // Clicked on a Stop. So, make it the end and dismiss the dialog.
                     Stop s = (Stop) view.getTag();
+                    if (s.getID()==MainActivity.STOP_ID_ANY) {
+                        s = null;
+                        endStop = null;
+                    }
                     setEndStop(s);  // Actually set the end stop.
                     dialog.dismiss();
                 }
@@ -916,6 +939,10 @@ public class MainActivity extends Activity {
                 @Override
                 public void onClick(View view) {
                     Stop s = (Stop) view.getTag();
+                    if (s.getID()==MainActivity.STOP_ID_ANY) {
+                        s = null;
+                        startStop = null;
+                    }
                     setStartStop(s);    // Actually set the start stop.
                     dialog.dismiss();
                 }
@@ -957,9 +984,9 @@ public class MainActivity extends Activity {
     private Bitmap getIcoBus(String text,Float angle) {
         //BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow)
 
-        Bitmap bm = BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop) //ic_bus_arrow
+        Bitmap bm = BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_bus) //ic_bus_arrow
                 .copy(Bitmap.Config.ARGB_8888, true);
-        //bm = rotateBitmap(bm,angle);
+        bm = rotateBitmap(bm,angle);
 
         Typeface tf = Typeface.create("Helvetica", Typeface.BOLD);
 
@@ -969,7 +996,7 @@ public class MainActivity extends Activity {
         paint.setTypeface(tf);
         //paint.setTextAlign(Align.CENTER);
         //paint.setTextSize(convertToPixels(context, 11));
-        paint.setTextSize(12);
+        paint.setTextSize(11);
 
         Rect textRect = new Rect();
         paint.getTextBounds(text, 0, text.length(), textRect);
@@ -982,12 +1009,13 @@ public class MainActivity extends Activity {
 
         //Calculate the positions
         //int xPos = (canvas.getWidth() / 2) - 2;     //-2 is for regulating the x position offset
+        int xPos = (canvas.getWidth() / 2) - 3*text.length();     //-2 is for regulating the x position offset
 
         //"- ((paint.descent() + paint.ascent()) / 2)" is the distance from the baseline to the center.
         //int yPos = (int) ((canvas.getHeight() / 2)); //- ((paint.descent() + paint.ascent()) / 2)) ;
-        int yPos = (int) ((canvas.getHeight() /2 ) - ((paint.descent() + paint.ascent()) / 2)) ;
+        int yPos = (int) ((canvas.getHeight() /2 ) - ((paint.descent() + paint.ascent()) / 2)) -1;
 
-        canvas.drawText(text, 1, yPos, paint);
+        canvas.drawText(text, xPos, yPos, paint);
 
         return  bm;
     }

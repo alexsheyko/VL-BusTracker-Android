@@ -59,9 +59,9 @@ public class Stop {
 
     public static String cleanName(String name) {
         name = name.replaceAll("at", "@");
-        name = name.replaceAll("[Aa]venue", "Ave");
-        name = name.replaceAll("bound", "");
-        name = name.replaceAll("[Ss]treet", "St");
+        //name = name.replaceAll("[Aa]venue", "Ave");
+        //name = name.replaceAll("bound", "");
+        //name = name.replaceAll("[Ss]treet", "St");
         return name;
     }
 
@@ -86,20 +86,28 @@ public class Stop {
     }
 
     public static void parseJSON(JSONObject stopsJson) throws JSONException {
+
+
         JSONArray jStops = new JSONArray();
         BusManager sharedManager = BusManager.getBusManager();
-        if (stopsJson != null) jStops = stopsJson.getJSONArray(BusManager.TAG_DATA);
+
+        String[] routes1 = new String[0];
+        Stop sany = sharedManager.getStop("--any--", "0", "0", MainActivity.STOP_ID_ANY,routes1);
+        sany.setFavorite(true);
+
+        if (stopsJson != null) jStops = stopsJson.getJSONArray(BusManager.TAG_STOP);
         if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "BusManager current # stops: " + sharedManager.getStops());
         if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Parsing # stops: " + jStops.length());
         for (int i = 0; i < jStops.length(); i++) {
-            JSONObject stopObject = jStops.getJSONObject(i);
-            String stopID = stopObject.getString(BusManager.TAG_STOP_ID);
-            String stopName = stopObject.getString(BusManager.TAG_STOP_NAME);
-            if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "*   Stop: " + stopID + " | " + stopName);
-            JSONObject location = stopObject.getJSONObject(BusManager.TAG_LOCATION);
-            String stopLat = location.getString(BusManager.TAG_LAT);
-            String stopLng = location.getString(BusManager.TAG_LNG);
-            JSONArray stopRoutes = stopObject.getJSONArray(BusManager.TAG_ROUTES);
+            //JSONObject stopObject = jStops.getJSONObject(i);
+            JSONArray stopObject = jStops.getJSONArray(i);
+            String stopID = stopObject.getString(0);
+            String stopName = stopObject.getString(1);
+            //if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "*   Stop: " + stopID + " | " + stopName);
+            //JSONObject location = stopObject.getJSONObject(BusManager.TAG_LOCATION);
+            String stopLat = stopObject.getString(3);
+            String stopLng = stopObject.getString(2);
+            JSONArray stopRoutes = stopObject.getJSONArray(4);
             String[] routes = new String[stopRoutes.length()];
             for (int j = 0; j < stopRoutes.length(); j++) {
                 routes[j] = stopRoutes.getString(j);
