@@ -621,6 +621,7 @@ public class MainActivity extends Activity {
     private void updateMapWithNewStartOrEnd() {
         // Can't update without any routes...
         if (LOCAL_LOGV) Log.v(LOG_TAG, "routesBetween is " + ((routesBetweenStartAndEnd == null) ? "" : "not ") + "null");
+        showStopOnMap();
 
         if (routesBetweenStartAndEnd == null) {
         //    mMap.clear();
@@ -1141,11 +1142,15 @@ public class MainActivity extends Activity {
             if(bounds.contains(b.getLocation())) {
                 ShowStop = Boolean.TRUE;
             }
+            if ((b==startStop) || (b == endStop)){
+                ShowStop = Boolean.FALSE;
+            }
 
             if (ShowStop) {
                 if(!Stop2Mark.containsKey(b.getID())) {
                     Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
-                            .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f).icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop))));
+                            .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f)
+                            .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop))));
 
                     Stop2Mark.put(b.getID(), mMarker);
                 }
@@ -1159,7 +1164,19 @@ public class MainActivity extends Activity {
                         Stop2Mark.remove(b.getID());
                     }
                 }
+
             }
+            b=startStop;
+            Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
+                    .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f)
+                    .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
+            Stop2Mark.put(b.getID(), mMarker);
+            b=endStop;
+            mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
+                    .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f)
+                    .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
+            Stop2Mark.put(b.getID(), mMarker);
+
         }
     }
 
