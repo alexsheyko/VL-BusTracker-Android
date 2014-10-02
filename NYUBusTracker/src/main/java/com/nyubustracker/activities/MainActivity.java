@@ -121,6 +121,7 @@ public class MainActivity extends Activity {
     private static List<Route> routesBetweenStartAndEnd;        // List of all routes between start and end.
     private HashMap<String, Boolean> clickableMapMarkers;   // Hash of all markers which are clickable (so we don't zoom in on buses).
     private HashMap<String, Marker> Bus2Mark;   //
+    private HashMap<String, Marker> Stop2Mark;   //
     private ArrayList<Marker> busesOnMap = new ArrayList<Marker>();
     private TextSwitcher mSwitcher;
     private String mSwitcherCurrentText;
@@ -168,6 +169,7 @@ public class MainActivity extends Activity {
                 // The Map is verified. It is now safe to manipulate the map.
                 mMap.getUiSettings().setRotateGesturesEnabled(false);
                 mMap.getUiSettings().setZoomControlsEnabled(true);
+                mMap.getUiSettings().setMyLocationButtonEnabled(true);
                 //mMap.setMyLocationEnabled(true);
                 /*
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -182,6 +184,7 @@ public class MainActivity extends Activity {
                     public void onCameraChange(com.google.android.gms.maps.model.CameraPosition position)
                    {
                        showBusOnMap();
+                       showStopOnMap();
                    }
 
                 });
@@ -250,7 +253,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    public static void pieceDownloadsTogether(final Context context) {
+    public static  void pieceDownloadsTogether(final Context context) {
         downloadsOnTheWire--;
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Downloads on the wire: " + downloadsOnTheWire);
         if (downloadsOnTheWire == 0) {
@@ -260,6 +263,7 @@ public class MainActivity extends Activity {
                 runOnUI(new Runnable() {
                 @Override
                 public void run() {
+                    //showStopOnMap(); !!
                     progressDialog.dismiss();
                     //Toast.makeText(context, "Downloading finished!", Toast.LENGTH_SHORT).show();
                     Stop broadway = BusManager.getBusManager().getStopByName("715 Broadway @ Washington Square");
@@ -283,6 +287,7 @@ public class MainActivity extends Activity {
 
         //((NYUBusTrackerApplication) getApplication()).getTracker();
         Bus2Mark = new HashMap<String, Marker>();
+        Stop2Mark = new HashMap<String, Marker>();
 
         oncePreferences = getSharedPreferences(RUN_ONCE_PREF, MODE_PRIVATE);
 
@@ -315,9 +320,9 @@ public class MainActivity extends Activity {
         mSwitcher.setInAnimation(in);
         mSwitcher.setOutAnimation(out);
 
-        drawer = (MultipleOrientationSlidingDrawer) findViewById(R.id.sliding_drawer);
-        drawer.setAllowSingleTap(false);
-        drawer.lock();
+        //drawer = (MultipleOrientationSlidingDrawer) findViewById(R.id.sliding_drawer);
+        //drawer.setAllowSingleTap(false);
+        //drawer.lock();
 
         timesList = (StickyListHeadersListView) findViewById(R.id.times_list);
         timesAdapter = new TimeAdapter(getApplicationContext(), new ArrayList<Time>());
@@ -439,8 +444,9 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (drawer.isOpened()) drawer.animateClose();
-        else super.onBackPressed();
+        //if (drawer.isOpened()) drawer.animateClose();
+        //else
+        super.onBackPressed();
     }
 
     void cacheStartAndEndStops() {
@@ -497,8 +503,8 @@ public class MainActivity extends Activity {
                             //new Downloader(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.VEHICLES_URL);
                             new DownloaderArray(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
                             updateMapWithNewBusLocations();
-                            if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current start: " + startStop);
-                            if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current end  : " + endStop);
+                            //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current start: " + startStop);
+                            //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current end  : " + endStop);
                         }
                         else if (!offline) {
                             offline = true;
@@ -615,12 +621,12 @@ public class MainActivity extends Activity {
     private void updateMapWithNewStartOrEnd() {
         // Can't update without any routes...
         if (LOCAL_LOGV) Log.v(LOG_TAG, "routesBetween is " + ((routesBetweenStartAndEnd == null) ? "" : "not ") + "null");
-        /*
+
         if (routesBetweenStartAndEnd == null) {
-            mMap.clear();
+        //    mMap.clear();
             return;
         }
-        */
+
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Have " + routesBetweenStartAndEnd.size() + " routes to show.");
         //setUpMapIfNeeded();
         //mMap.clear();
@@ -636,6 +642,7 @@ public class MainActivity extends Activity {
             //if ((r.isActive(startStop) || !somethingActive) && !r.getSegments().isEmpty()) {
                 somethingActive = true;
                 if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Updating map with route: " + r.getLongName());
+                /*
                 for (Stop s : r.getStops()) {
                     for (Stop f : s.getFamily()) {
                         if ((!f.isHidden() && !f.isRelatedTo(startStop) && !f.isRelatedTo(endStop)) || (f == startStop || f == endStop)) {
@@ -647,6 +654,7 @@ public class MainActivity extends Activity {
                         }
                     }
                 }
+                */
                 updateMapWithNewBusLocations();
                /*
                 // Adds the segments of every Route to the map.
@@ -681,13 +689,14 @@ public class MainActivity extends Activity {
     private void setEndStop(Stop stop) {
         if (stop == null) {
             ((TextView) findViewById(R.id.end_stop)).setText(getString(R.string.default_end));
-            if (drawer.isOpened()) drawer.animateClose();
+            //if (drawer.isOpened()) drawer.animateClose();
             endStop = null;
-            routesBetweenStartAndEnd = null;
+            //routesBetweenStartAndEnd = null;
             timesBetweenStartAndEnd = null;
+            setNextBusTime();    // Don't set the next bus if we don't have a valid route.
             updateMapWithNewStartOrEnd();
-            drawer.lock();
-            drawer.setAllowSingleTap(false);
+            //drawer.lock();
+            //drawer.setAllowSingleTap(false);
             return;
         }
         // Check there is a route between these stops.
@@ -735,7 +744,13 @@ public class MainActivity extends Activity {
     }
 
     private void setStartStop(Stop stop) {
-        if (stop == null) return;
+        if (stop == null) {
+            startStop = null;
+            ((TextView) findViewById(R.id.start_stop)).setText(getString(R.string.default_start));
+            setNextBusTime();
+            return;
+        }
+
         if (endStop == stop) {    // Selected the end as the new start.
             // Swap the start and end stops.
             Stop temp = startStop;
@@ -773,12 +788,23 @@ public class MainActivity extends Activity {
         //if (busRefreshTimer != null) busRefreshTimer.cancel();
         //if (busDownloadTimer != null) busDownloadTimer.cancel();
 
+        if (startStop==null){
+            routesBetweenStartAndEnd = null;
+            updateNextTimeSwitcher("");
+            return;
+        }
         // Find the best pair of start and end related to this pair, since Stops can "combine"
         // and have child stops, like at 14th Street and 3rd Ave.
         Stop[] newStartAndEnd = Stop.getBestRelatedStartAndEnd(startStop, endStop);
         startStop = newStartAndEnd[0];
         endStop = newStartAndEnd[1];
         routesBetweenStartAndEnd = startStop.getRoutesTo(endStop);
+        String Str="";
+        for (Route r : routesBetweenStartAndEnd) {
+            Str = Str + r.getLongName() +",";
+        }
+        updateNextTimeSwitcher(Str);
+
         timesBetweenStartAndEnd = startStop.getTimesToOn(endStop, routesBetweenStartAndEnd);
         timesAdapter.setDataSet(timesBetweenStartAndEnd);
         timesAdapter.notifyDataSetChanged();
@@ -791,14 +817,14 @@ public class MainActivity extends Activity {
                 Log.v(LOG_TAG, "Times Null: " + (timesBetweenStartAndEnd == null));
                 Log.v(LOG_TAG, "No times: " + timesBetweenStartAndEnd.size());
             }
-            drawer.setAllowSingleTap(false);
-            drawer.lock();
-            sayBusIsOffline();
-            showSafeRideInfoIfNeeded(Time.getCurrentTime());
+            //drawer.setAllowSingleTap(false);
+            //drawer.lock();
+            //sayBusIsOffline();
+            //showSafeRideInfoIfNeeded(Time.getCurrentTime());
             return;
         }
-        drawer.setAllowSingleTap(true);
-        drawer.unlock();
+        //drawer.setAllowSingleTap(true);
+        //drawer.unlock();
         final Time currentTime = Time.getCurrentTime();
         ArrayList<Time> tempTimesBetweenStartAndEnd = new ArrayList<Time>(timesBetweenStartAndEnd);
         tempTimesBetweenStartAndEnd.add(currentTime);
@@ -811,7 +837,7 @@ public class MainActivity extends Activity {
         nextBusTime = tempTimesBetweenStartAndEnd.get(nextTimeTempIndex);
         final int nextTimeIndex = timesBetweenStartAndEnd.indexOf(nextBusTime);
 
-        updateNextTimeSwitcher(currentTime.getTimeAsStringUntil(nextBusTime, getResources()));
+        //updateNextTimeSwitcher(currentTime.getTimeAsStringUntil(nextBusTime, getResources()));
 
         timesList.clearFocus();
         timesList.post(new Runnable() {
@@ -834,9 +860,9 @@ public class MainActivity extends Activity {
             }
             ((TextView) findViewById(R.id.next_route)).setText(getString(R.string.via) + routeText);
             ((TextView) findViewById(R.id.next_bus)).setText(getString(R.string.next_bus_in));
-            findViewById(R.id.safe_ride_button).setVisibility(View.GONE);
+            //findViewById(R.id.safe_ride_button).setVisibility(View.GONE);
         }
-        else showSafeRideInfoIfNeeded(currentTime);
+        //else showSafeRideInfoIfNeeded(currentTime);
         //renewBusRefreshTimer();
         renewTimeUntilTimer();
     }
@@ -855,12 +881,14 @@ public class MainActivity extends Activity {
 
     private void updateNextTimeSwitcher(final String newSwitcherText){
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Updating switcher to [" + newSwitcherText + "]");
-        if (drawer != null && !drawer.isMoving() && !mSwitcherCurrentText.equals(newSwitcherText)) {
+        //if (drawer != null && !drawer.isMoving() &&
+        if(!mSwitcherCurrentText.equals(newSwitcherText)) {
             mSwitcher.setText(newSwitcherText);  // Pass resources so we return the proper string value.
             mSwitcherCurrentText = newSwitcherText;
         }
         // Handle a bug where the time until text disappears when the drawer is being moved. So, just wait for it to finish.
         // We don't know if the drawer will end up open or closed, though. So handle both cases.
+        /*
         else if (drawer != null && !mSwitcherCurrentText.equals(newSwitcherText)) {
             drawer.setOnDrawerCloseListener(new MultipleOrientationSlidingDrawer.OnDrawerCloseListener() {
                 @Override
@@ -876,14 +904,14 @@ public class MainActivity extends Activity {
                     mSwitcherCurrentText = newSwitcherText;
                 }
             });
-        }
+        }*/
     }
 
     @SuppressWarnings("UnusedParameters")
     public void callSafeRide(View view) {
-        Intent callIntent = new Intent(Intent.ACTION_DIAL);
-        callIntent.setData(Uri.parse("tel:12129928267"));
-        startActivity(callIntent);
+        //Intent callIntent = new Intent(Intent.ACTION_DIAL);
+        //callIntent.setData(Uri.parse("tel:12129928267"));
+        //startActivity(callIntent);
     }
 
     @SuppressWarnings("UnusedParameters")
@@ -1013,7 +1041,7 @@ public class MainActivity extends Activity {
 
         //"- ((paint.descent() + paint.ascent()) / 2)" is the distance from the baseline to the center.
         //int yPos = (int) ((canvas.getHeight() / 2)); //- ((paint.descent() + paint.ascent()) / 2)) ;
-        int yPos = (int) ((canvas.getHeight() /2 ) - ((paint.descent() + paint.ascent()) / 2)) -1;
+        int yPos = (int) ((canvas.getHeight() /2 ) - ((paint.descent() + paint.ascent()) / 2)) +2;
 
         canvas.drawText(text, xPos, yPos, paint);
 
@@ -1042,7 +1070,20 @@ public class MainActivity extends Activity {
         for (Bus b : sharedManager.getBuses()) {
             //if (LOCAL_LOGV) Log.v("BusLocations", "bus id: " + b.getID() + ", bus route: " + b.getRoute() + " vs route: " + r.getID());
             //if (b.getRoute().equals(r.getID())) {
-            if(bounds.contains(b.getLocation())){
+            Boolean ShowBus = Boolean.FALSE;
+            if(bounds.contains(b.getLocation())) {
+                if (routesBetweenStartAndEnd==null){
+                    ShowBus = Boolean.TRUE;
+                }else {
+                    for (Route r : routesBetweenStartAndEnd) {
+                        if (b.getRoute().equals(r.getID())) {
+                            ShowBus = Boolean.TRUE;
+                        }
+                    }
+                }
+            }
+
+            if (ShowBus) {
                 if(!Bus2Mark.containsKey(b.getID())) {
                     Marker mMarker = mMap.addMarker(new MarkerOptions()
                                     .position(b.getLocation())
@@ -1077,7 +1118,6 @@ public class MainActivity extends Activity {
                         Bus2Mark.remove(b.getID());
                     }
                 }
-
             }
             //clickableMapMarkers.put(mMarker.getId(), false);    // Unable to click on buses.
             //busesOnMap.add(mMarker);
@@ -1089,6 +1129,41 @@ public class MainActivity extends Activity {
         // mMap.moveCamera(center);
 
     }
+
+    private void showStopOnMap(){
+
+        BusManager sharedManager = BusManager.getBusManager();
+        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+
+        for (Stop b : sharedManager.getStops()) {
+            //if (LOCAL_LOGV) Log.v("BusLocations", "bus id: " + b.getID() + ", bus route: " + b.getRoute() + " vs route: " + r.getID());
+            Boolean ShowStop = Boolean.FALSE;
+            if(bounds.contains(b.getLocation())) {
+                ShowStop = Boolean.TRUE;
+            }
+
+            if (ShowStop) {
+                if(!Stop2Mark.containsKey(b.getID())) {
+                    Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
+                            .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f).icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop))));
+
+                    Stop2Mark.put(b.getID(), mMarker);
+                }
+            }else{
+                if(!Stop2Mark.containsKey(b.getID())) {
+
+                }else{
+                    Marker mMarker = Stop2Mark.get(b.getID());
+                    if (mMarker!= null){
+                        mMarker.remove();
+                        Stop2Mark.remove(b.getID());
+                    }
+                }
+            }
+        }
+    }
+
+
 
     @SuppressWarnings("UnusedParameters")
     public void createInfoDialog1(View view) {

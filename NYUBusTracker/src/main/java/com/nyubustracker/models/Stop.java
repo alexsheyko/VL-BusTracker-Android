@@ -1,5 +1,6 @@
 package com.nyubustracker.models;
 
+import android.location.Location;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -116,6 +117,46 @@ public class Stop {
             //if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Number of stops in manager: " + sharedManager.numStops());
             //if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "___after adding " + s.name);
         }
+        Location loc1 = new Location("");
+        Location loc2 = new Location("");
+        for (Stop s1 : sharedManager.getStops()) {
+            if (s1==sany)continue;
+            if (s1.getOppositeStop()==null) {
+                if (s1.getID().substring(0,1)=="-"){
+
+                    String stopID = s1.getID().substring(1);
+                    Stop s2 = null;
+                    for (Stop s : sharedManager.getStops()) {
+                        if (s.getID().equals(stopID)) {
+                            s2 = s;
+                            break;
+                        }
+                    }
+                    if (s2!=null){
+                        s1.setOppositeStop(s2);
+                        s2.setOppositeStop(s1);
+                    }
+                }
+/*
+                loc1.setLatitude(s1.getLocation().latitude);
+                loc1.setLongitude(s1.getLocation().longitude);
+
+                for (Stop s2 : sharedManager.getStops()) {
+                    if (s1==s2)                        continue;
+                    if (s2==sany)continue;
+
+                    loc2.setLatitude(s2.getLocation().latitude);
+                    loc2.setLongitude(s2.getLocation().longitude);
+                    if (loc1.distanceTo(loc2) < 30) {
+                        s1.setOppositeStop(s2);
+                    }
+
+                }
+                */
+            }
+        }
+
+
     }
 
     public Stop getOppositeStop() {
@@ -293,6 +334,7 @@ public class Stop {
     }
 
     public boolean isRelatedTo(Stop stop) {
+        if (stop==null) return false;
         return (this.getUltimateName().equals(stop.getUltimateName()));
     }
 
@@ -315,7 +357,11 @@ public class Stop {
     public List<Route> getRoutesTo(Stop endStop) {
         Stop startStop = this;
         ArrayList<Route> startRoutes = startStop.getUltimateParent().getRoutes();        // All the routes leaving the start stop.
+        if (endStop==null){
+            return  startRoutes;
+        }
         ArrayList<Route> endRoutes = endStop.getUltimateParent().getRoutes();
+
         boolean foundAValidRoute = false;
         ArrayList<Route> availableRoutes = new ArrayList<Route>();               // All the routes connecting the two.
         for (Route r : startRoutes) {
@@ -342,7 +388,7 @@ public class Stop {
                 Log.d(MainActivity.LOG_TAG, "  has " + times.size() + " times ");
                 Log.d(MainActivity.LOG_TAG, "  has " + otherTimes.size() + " other times.");
             }
-            if (!otherTimes.isEmpty() && !endStop.getTimesOfRoute(r.getOtherLongName()).isEmpty()) {
+            if (!(endStop==null) && !otherTimes.isEmpty() && !endStop.getTimesOfRoute(r.getOtherLongName()).isEmpty()) {
                 for (Time t : otherTimes) {
                     if (!timesBetweenStartAndEnd.contains(t)) {
                         timesBetweenStartAndEnd.add(t);
@@ -361,23 +407,25 @@ public class Stop {
     }
 
     public static Stop[] getBestRelatedStartAndEnd(Stop startStop, Stop endStop) {
-        BusManager sharedManager = BusManager.getBusManager();
-        int bestDistance = sharedManager.distanceBetween(startStop, endStop);
+        if (endStop!=null && startStop!=null) {
+            BusManager sharedManager = BusManager.getBusManager();
+            int bestDistance = sharedManager.distanceBetween(startStop, endStop);
 
-        int testDistance = sharedManager.distanceBetween(startStop.getOppositeStop(), endStop.getOppositeStop());
-        if (testDistance < bestDistance) {
-            startStop = startStop.getOppositeStop();
-            endStop = endStop.getOppositeStop();
-        }
+            int testDistance = sharedManager.distanceBetween(startStop.getOppositeStop(), endStop.getOppositeStop());
+            if (testDistance < bestDistance) {
+                startStop = startStop.getOppositeStop();
+                endStop = endStop.getOppositeStop();
+            }
 
-        testDistance = sharedManager.distanceBetween(startStop, endStop.getOppositeStop());
-        if (testDistance < bestDistance) {
-            endStop = endStop.getOppositeStop();
-        }
+            testDistance = sharedManager.distanceBetween(startStop, endStop.getOppositeStop());
+            if (testDistance < bestDistance) {
+                endStop = endStop.getOppositeStop();
+            }
 
-        testDistance = sharedManager.distanceBetween(startStop.getOppositeStop(), endStop);
-        if (testDistance < bestDistance) {
-            startStop = startStop.getOppositeStop();
+            testDistance = sharedManager.distanceBetween(startStop.getOppositeStop(), endStop);
+            if (testDistance < bestDistance) {
+                startStop = startStop.getOppositeStop();
+            }
         }
         return new Stop[] {startStop, endStop};
     }

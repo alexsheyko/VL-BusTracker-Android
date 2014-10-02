@@ -317,6 +317,12 @@ public final class BusManager {
      */
     public ArrayList<Stop> getConnectedStops(Stop stop) {
         ArrayList<Stop> result = new ArrayList<Stop>();
+        for (Stop s1 : getStops()) {
+            if (s1.getID()==MainActivity.STOP_ID_ANY){
+                result.add(s1);
+            }
+        }
+
         if (stop != null) {
             ArrayList<Route> stopRoutes = stop.getRoutes();
             for (Route route : stopRoutes) {       // For every route servicing this stop:
@@ -326,6 +332,7 @@ public final class BusManager {
                         if (connectedStop != null && !connectedStop.getUltimateName().equals(stop.getName()) &&
                             !result.contains(connectedStop) &&
                             (!connectedStop.isHidden() || !connectedStop.isRelatedTo(stop))) {
+
                             while (connectedStop.getParent() != null) {
                                 connectedStop = connectedStop.getParent();
                             }
@@ -335,6 +342,7 @@ public final class BusManager {
                                     repeatStop = true;
                                 }
                             }
+
                             if (!repeatStop) {
                                 result.add(connectedStop);
                                 //if (MainActivity.LOCAL_LOGV) Log.v("Route Debugging","'" + connectedStop.getName() + "' is connected to '" + stop.getName() + "'");
