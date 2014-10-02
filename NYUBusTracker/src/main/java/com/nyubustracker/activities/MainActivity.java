@@ -1131,7 +1131,7 @@ public class MainActivity extends Activity {
 
     }
 
-    private void showStopOnMap(){
+    private void showStopOnMap() {
 
         BusManager sharedManager = BusManager.getBusManager();
         LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
@@ -1139,45 +1139,48 @@ public class MainActivity extends Activity {
         for (Stop b : sharedManager.getStops()) {
             //if (LOCAL_LOGV) Log.v("BusLocations", "bus id: " + b.getID() + ", bus route: " + b.getRoute() + " vs route: " + r.getID());
             Boolean ShowStop = Boolean.FALSE;
-            if(bounds.contains(b.getLocation())) {
+            if (bounds.contains(b.getLocation())) {
                 ShowStop = Boolean.TRUE;
             }
-            if ((b==startStop) || (b == endStop)){
+            if ((b == startStop) || (b == endStop)) {
                 ShowStop = Boolean.FALSE;
             }
 
             if (ShowStop) {
-                if(!Stop2Mark.containsKey(b.getID())) {
+                if (!Stop2Mark.containsKey(b.getID())) {
                     Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
                             .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f)
                             .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop))));
 
                     Stop2Mark.put(b.getID(), mMarker);
                 }
-            }else{
-                if(!Stop2Mark.containsKey(b.getID())) {
+            } else {
+                if (!Stop2Mark.containsKey(b.getID())) {
 
-                }else{
+                } else {
                     Marker mMarker = Stop2Mark.get(b.getID());
-                    if (mMarker!= null){
+                    if (mMarker != null) {
                         mMarker.remove();
                         Stop2Mark.remove(b.getID());
                     }
                 }
 
             }
-            b=startStop;
-            Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
-                    .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f)
-                    .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
-            Stop2Mark.put(b.getID(), mMarker);
-            b=endStop;
-            mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
-                    .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f)
-                    .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
-            Stop2Mark.put(b.getID(), mMarker);
-
         }
+        if (startStop != null){
+            Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
+                .position(startStop.getLocation()).title(startStop.getName()).anchor(0.5f, 0.5f)
+                .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
+            Stop2Mark.put(startStop.getID(), mMarker);
+        }
+        if (endStop != null){
+            Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
+                .position(endStop.getLocation()).title(endStop.getName()).anchor(0.5f, 0.5f)
+                .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
+            Stop2Mark.put(endStop.getID(), mMarker);
+        }
+
+
     }
 
 
