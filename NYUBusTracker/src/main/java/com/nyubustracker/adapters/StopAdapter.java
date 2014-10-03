@@ -52,7 +52,7 @@ public class StopAdapter extends BaseAdapter {
     public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.stop_list_item, parent, false);
+            convertView = mInflater.inflate(R.layout.stop_list_item1, parent, false);
             if (convertView != null) {
                 holder = new ViewHolder();
                 // Get the specific views and store them in a ViewHolder.

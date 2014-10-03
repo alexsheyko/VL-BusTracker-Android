@@ -1,5 +1,6 @@
 package com.nyubustracker.helpers;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -27,14 +28,20 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
     final DownloaderHelper helper;
     public static final String CREATED_FILES_DIR = "NYUCachedFiles";
     static Context context;
+    //MainActivity main;
 
     public static Context getContext() {
         return context;
     }
 
-    public Downloader(DownloaderHelper helper, Context mContext) {
+    public static MainActivity getMain() {
+        return null;
+    }
+
+    public Downloader(DownloaderHelper helper, Context mContext, MainActivity mMain) {
         this.helper = helper;
         context = mContext;
+        //main = mMain;
     }
 
     @Override
@@ -63,6 +70,10 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
             if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "helper class: " + helper.getClass() + " (" + MainActivity.downloadsOnTheWire + ")");
             helper.parse(result);
             if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "helper end: " + helper.getClass() + " (" + MainActivity.downloadsOnTheWire + ")");
+            /*if (main!=null) {
+                ((MainActivity) main).setProgressBarIndeterminate(false); //WTF
+            }*/
+
             if (!helper.getClass().toString().contains("BusDownloaderHelper")) MainActivity.pieceDownloadsTogether(context);
         } catch (JSONException e) {
             Log.d(MainActivity.REFACTOR_LOG_TAG, "JSON Exception while parsing in onPostExecute.");

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.res.Configuration;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -26,17 +27,24 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextSwitcher;
@@ -139,11 +147,18 @@ public class MainActivity extends Activity {
     private MultipleOrientationSlidingDrawer drawer;
     public static int downloadsOnTheWire = 0;
     public static Handler UIHandler;
-    private static final int BUSES_RELOAD_TIMEOUT = 5; //// в секундах
+    private static final int BUSES_RELOAD_TIMEOUT = 10; //// в секундах
     public static final String STOP_ID_ANY = "-any-"; //// в секундах
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
+    private CharSequence mTitle;
+    private ListView lv;
+    StopAdapter adapter;
+
+    // Search EditText
+    EditText inputSearch;
+
 
     static {
         UIHandler = new Handler(Looper.getMainLooper());
@@ -159,10 +174,9 @@ public class MainActivity extends Activity {
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
-    private void setUpMapIfNeeded() {
+    private void createMap() {
         // First check if GPS is available.
-        //final LatLng BROADWAY = new LatLng(40.729146, -73.993756);
-        final LatLng BROADWAY = new LatLng(43.126089, 131.940317); // VL_CENTER
+        final LatLng BROADWAY = new LatLng(43.116593,131.882166); // VL_CENTER
         int retCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
         if (retCode != ConnectionResult.SUCCESS) {
             GooglePlayServicesUtil.getErrorDialog(retCode, this, 1).show();
@@ -186,6 +200,8 @@ public class MainActivity extends Activity {
                     }
                 });
                 */
+
+
                 mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener(){
                    @Override
                     public void onCameraChange(com.google.android.gms.maps.model.CameraPosition position)
@@ -239,14 +255,17 @@ public class MainActivity extends Activity {
             // Download and parse everything, put it all in persistent memory, continue.
             //if (block) progressDialog = ProgressDialog.show(this, getString(R.string.downloading), getString(R.string.wait), true, false);
             //else progressDialog = null;
+            setProgressBarIndeterminateVisibility(true);
 
             Context context = getApplicationContext();
+
             downloadsOnTheWire += 1; //4;
             //new Downloader(new StopDownloaderHelper(), context).execute(DownloaderHelper.STOPS_URL);
             //new Downloader(new RouteDownloaderHelper(), context).execute(DownloaderHelper.ROUTES_URL);
             //new Downloader(new SegmentDownloaderHelper(), context).execute(DownloaderHelper.SEGMENTS_URL);
             //new Downloader(new VersionDownloaderHelper(), context).execute(DownloaderHelper.VERSION_URL);
-            new Downloader(new AggregateDownloaderHelper(), context).execute(DownloaderHelper.AGR_URL);
+            new Downloader(new AggregateDownloaderHelper(), context, this).execute(DownloaderHelper.AGR_URL);
+            //setProgressBarIndeterminateVisibility(false);
         }
         else if (!offline) {    // Only show the offline dialog once.
             offline = true;
@@ -260,17 +279,22 @@ public class MainActivity extends Activity {
         }
     }
 
-    public static  void pieceDownloadsTogether(final Context context) {
+    public static void pieceDownloadsTogether(final Context context) {
         downloadsOnTheWire--;
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Downloads on the wire: " + downloadsOnTheWire);
         if (downloadsOnTheWire == 0) {
             if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Downloading finished!");
             oncePreferences.edit().putBoolean(FIRST_TIME, false).apply();
+            /*
             if (progressDialog != null) {
+
                 runOnUI(new Runnable() {
                 @Override
                 public void run() {
                     //showStopOnMap(); !!
+                    setProgressBarIndeterminateVisibility(false);
+
+
                     progressDialog.dismiss();
                     //Toast.makeText(context, "Downloading finished!", Toast.LENGTH_SHORT).show();
                     Stop broadway = BusManager.getBusManager().getStopByName("715 Broadway @ Washington Square");
@@ -278,13 +302,54 @@ public class MainActivity extends Activity {
                             context.getSharedPreferences(Stop.FAVORITES_PREF, MODE_PRIVATE).edit().putBoolean(broadway.getID(), true).apply();
                             broadway.setFavorite(true);
                         }
-                    }
+                    };
+
                 });
+
             }
+            */
         }
         // Else, we have nothing to do, since not all downloads are finished.
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu items for use in the action bar
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main_activity_actions, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (mDrawerToggle != null && mDrawerToggle.onOptionsItemSelected(item))
+            return true;
+
+        switch (item.getItemId()) {
+            case R.id.action_search:
+                openSearch();
+                return true;
+            case R.id.action_settings:
+                //openSettings();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        /*if (item.getItemId() == R.id.action_about) {
+            Toast.makeText(this, R.string.about, Toast.LENGTH_LONG).show();
+            return true;
+        }
+        */
+        //return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (mDrawerToggle != null)
+            mDrawerToggle.onConfigurationChanged(newConfig);
+    }
 
     private class OnItemClickListener implements ListView.OnItemClickListener {
         @Override
@@ -292,26 +357,65 @@ public class MainActivity extends Activity {
             if (mDrawerLayout != null)
                 mDrawerLayout.closeDrawers();
             //selectItem(position);
+            if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "List:"+Integer.toString(position));
+            switch (position){
+                case 0:
+                    openSearch();
+                case 1:
+                    createInfoDialog(null);
+                case 2:
+                    //createInfoDialog1();
+                default:
+                    //createInfoDialog();
+            }
+
         }
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        if (mDrawerToggle != null)
+            mDrawerToggle.syncState();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "onCreate!");
         //setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_main1);
+
+
         //http://www.dimasokol.ru/drawerlayout-panel-from-google/
         //https://developer.android.com/training/implementing-navigation/nav-drawer.html
 
+        mTitle = getTitle();
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
 
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
-                R.drawable.ic_drawer, R.string.drawer_open, R.string.drawer_close);
+                R.drawable.ic_drawer, R.string.drawer_open, R.string.drawer_close){
+            public void onDrawerClosed(View view) {
+                getActionBar().setTitle(mTitle);
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            public void onDrawerOpened(View drawerView) {
+                getActionBar().setTitle(R.string.drawer_select);
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
 
         mDrawerLayout.setDrawerListener(mDrawerToggle);
+        //mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, Gravity.START);
+
+        // Включим кнопки на action bar
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getActionBar().setHomeButtonEnabled(true);
 
         // Set the adapter for the list view
         //mDrawerList.setAdapter(new ArrayAdapter<String>(this,
@@ -321,23 +425,20 @@ public class MainActivity extends Activity {
         // Этот код обрабатывает нажатия на пункты списка в выезжающей панели.
         // По такому нажатию мы будем закрывать drawer.
         mDrawerList.setOnItemClickListener(new OnItemClickListener());
-        // Включим кнопки на action bar
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setHomeButtonEnabled(true);
 
-        //return;
-        /*
+
+
         //((NYUBusTrackerApplication) getApplication()).getTracker();
         Bus2Mark = new HashMap<String, Marker>();
         Stop2Mark = new HashMap<String, Marker>();
-
         oncePreferences = getSharedPreferences(RUN_ONCE_PREF, MODE_PRIVATE);
 
-        setUpMapIfNeeded(); // Instantiates mMap, if it needs to be.
+        createMap(); // Instantiates mMap, if it needs to be.
 
         // Singleton BusManager to keep track of all stops, routes, etc.
         final BusManager sharedManager = BusManager.getBusManager();
 
+        /*
         mSwitcher = (TextSwitcher) findViewById(R.id.next_time);
         mSwitcherCurrentText = "";
 
@@ -361,14 +462,15 @@ public class MainActivity extends Activity {
         // set the animation type of textSwitcher
         mSwitcher.setInAnimation(in);
         mSwitcher.setOutAnimation(out);
+*/
 
         //drawer = (MultipleOrientationSlidingDrawer) findViewById(R.id.sliding_drawer);
         //drawer.setAllowSingleTap(false);
         //drawer.lock();
 
-        timesList = (StickyListHeadersListView) findViewById(R.id.times_list);
-        timesAdapter = new TimeAdapter(getApplicationContext(), new ArrayList<Time>());
-        timesList.setAdapter(timesAdapter);
+        //timesList = (StickyListHeadersListView) findViewById(R.id.times_list);
+        //timesAdapter = new TimeAdapter(getApplicationContext(), new ArrayList<Time>());
+        //timesList.setAdapter(timesAdapter);
 
         downloadEverything(true);
         renewBusRefreshTimer();
@@ -501,8 +603,8 @@ public class MainActivity extends Activity {
 
     void sayBusIsOffline() {
         updateNextTimeSwitcher(getString(R.string.offline));
-        ((TextView) findViewById(R.id.next_bus)).setText("");
-        ((TextView) findViewById(R.id.next_route)).setText("");
+        //((TextView) findViewById(R.id.next_bus)).setText("");
+        //((TextView) findViewById(R.id.next_route)).setText("");
     }
 
     /*
@@ -544,8 +646,10 @@ public class MainActivity extends Activity {
                             offline = false;
                             //asv
                             //new Downloader(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.VEHICLES_URL);
+                            //setProgressBarIndeterminateVisibility(true);
                             new DownloaderArray(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
-                            updateMapWithNewBusLocations();
+                            showBusOnMap();
+                            //setProgressBarIndeterminateVisibility(false);
                             //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current start: " + startStop);
                             //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current end  : " + endStop);
                         }
@@ -620,7 +724,7 @@ public class MainActivity extends Activity {
 
     // Clear the map of all buses and put them all back on in their new locations.
     private void updateMapWithNewBusLocations() {
-        showBusOnMap();
+        //showBusOnMap();
 
 /*        if (routesBetweenStartAndEnd != null) {
             BusManager sharedManager = BusManager.getBusManager();
@@ -699,7 +803,6 @@ public class MainActivity extends Activity {
                     }
                 }
                 */
-                updateMapWithNewBusLocations();
                /*
                 // Adds the segments of every Route to the map.
                 if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, r + " has " + r.getSegments().size() + " segments.");
@@ -719,6 +822,8 @@ public class MainActivity extends Activity {
                 */
             //}
         }
+        showBusOnMap();
+
         if (validBuilder) {
             LatLngBounds bounds = builder.build();
             try {
@@ -850,8 +955,8 @@ public class MainActivity extends Activity {
         updateNextTimeSwitcher(Str);
 
         timesBetweenStartAndEnd = startStop.getTimesToOn(endStop, routesBetweenStartAndEnd);
-        timesAdapter.setDataSet(timesBetweenStartAndEnd);
-        timesAdapter.notifyDataSetChanged();
+        //timesAdapter.setDataSet(timesBetweenStartAndEnd);
+        //timesAdapter.notifyDataSetChanged();
         if (routesBetweenStartAndEnd == null || // No routes between the two. Should not happen.
             timesBetweenStartAndEnd == null  || // Should definitely not be here. But, just in case.
             timesBetweenStartAndEnd.size() == 0){   // Have a route, but no time.
@@ -890,7 +995,7 @@ public class MainActivity extends Activity {
                 timesList.setSelection(nextTimeIndex);
             }
         });
-        timesAdapter.setTime(currentTime);
+        //timesAdapter.setTime(currentTime);
 
         if (BusManager.getBusManager().isNotDuringSafeRide()) {
             String routeText;
@@ -902,8 +1007,8 @@ public class MainActivity extends Activity {
             else {
                 routeText = route;
             }
-            ((TextView) findViewById(R.id.next_route)).setText(getString(R.string.via) + routeText);
-            ((TextView) findViewById(R.id.next_bus)).setText(getString(R.string.next_bus_in));
+            //((TextView) findViewById(R.id.next_route)).setText(getString(R.string.via) + routeText);
+            //((TextView) findViewById(R.id.next_bus)).setText(getString(R.string.next_bus_in));
             //findViewById(R.id.safe_ride_button).setVisibility(View.GONE);
         }
         //else showSafeRideInfoIfNeeded(currentTime);
@@ -913,13 +1018,15 @@ public class MainActivity extends Activity {
 
     private void showSafeRideInfoIfNeeded(Time currentTime) {
         if (!BusManager.getBusManager().isNotDuringSafeRide()) {
-            ((TextView) findViewById(R.id.next_route)).setText("");
-            ((TextView) findViewById(R.id.next_bus)).setText("");
+            //((TextView) findViewById(R.id.next_route)).setText("");
+            //((TextView) findViewById(R.id.next_bus)).setText("");
+            /*
             if (currentTime.getHour() < 7) {
                 findViewById(R.id.safe_ride_button).setVisibility(View.VISIBLE);
             } else {
                 findViewById(R.id.safe_ride_button).setVisibility(View.GONE);
             }
+            */
         }
     }
 
@@ -998,8 +1105,50 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings("UnusedParameters")
     public void createStartDialog(View view) {
+
         final ArrayList<Stop> stops = BusManager.getBusManager().getStops();    // Show every stop as an option to start.
         if (stops.size() > 0) {
+
+            lv = (ListView) findViewById(R.id.start_stop1);
+            adapter = new StopAdapter(getApplicationContext(), stops, new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Stop s = (Stop) view.getTag();
+                    if (s.getID()==MainActivity.STOP_ID_ANY) {
+                        s = null;
+                        startStop = null;
+                    }
+                    //setStartStop(s);    // Actually set the start stop.
+                    //dialog.dismiss();
+                }
+            }, cbListener);
+
+            //adapter = new ArrayAdapter<String>(this, R.layout.stop_list_item1, R.id.stop_text, stops);
+            lv.setAdapter(adapter);
+            inputSearch = (EditText) findViewById(R.id.inputSearch);
+            inputSearch.addTextChangedListener(new TextWatcher() {
+
+                @Override
+                public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
+                    // When user changed the Text
+                    //MainActivity.this.adapter.getFilter().filter(cs);
+                }
+
+                @Override
+                public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+                                              int arg3) {
+                    // TODO Auto-generated method stub
+
+                }
+
+                @Override
+                public void afterTextChanged(Editable arg0) {
+                    // TODO Auto-generated method stub
+                }
+            });
+
+
+/*
             ListView listView = new ListView(this);
             listView.setId(R.id.start_stop);
             listView.setDivider(new ColorDrawable(getResources().getColor(R.color.time_list_background)));
@@ -1022,6 +1171,7 @@ public class MainActivity extends Activity {
             listView.setAdapter(adapter);
             dialog.setCanceledOnTouchOutside(true);
             dialog.show();
+        */
         }
         else {
             displayStopError();
@@ -1036,6 +1186,28 @@ public class MainActivity extends Activity {
         if (context != null) {
             Toast.makeText(context, text, duration).show();
         }
+    }
+
+
+    public void openSearch(){
+        //if stop load
+        findViewById(R.id.form_search).setVisibility(View.VISIBLE);
+        findViewById(R.id.main_layout).setVisibility(View.GONE);
+
+        createStartDialog(null);
+/*
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        LinearLayout linearLayout = (LinearLayout) getLayoutInflater()
+                .inflate(
+                        R.layout.search_layout,
+                        (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0),
+                        false
+                );
+        builder.setView(linearLayout);
+        Dialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.show();
+*/
     }
 
     @SuppressWarnings("UnusedParameters")
@@ -1110,9 +1282,20 @@ public class MainActivity extends Activity {
 
         Long t= System.currentTimeMillis();
 
-        ((TextView) findViewById(R.id.next_route)).setText(""+t);
+
 
         BusManager sharedManager = BusManager.getBusManager();
+        if (sharedManager.getStops().size()>1){
+            //stops load ok
+            setProgressBarIndeterminateVisibility(false);
+            showStopOnMap();
+        }
+
+        String st= "";
+        st = st +"/"+ Integer.toString(sharedManager.getStops().size());
+        st = st +"/"+ Integer.toString(sharedManager.getBuses().size());
+        ((TextView) findViewById(R.id.footer_text)).setText(st+"/"+t);
+
         LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
 
         for (Bus b : sharedManager.getBuses()) {
@@ -1230,43 +1413,6 @@ public class MainActivity extends Activity {
 
     }
 
-
-
-    @SuppressWarnings("UnusedParameters")
-    public void createInfoDialog1(View view) {
-        final LatLng VL_CENTER = new LatLng(43.155152,131.910735);
-        LatLng POS_ON_MAP = new LatLng(43.126089, 131.940317);
-        CameraUpdate center= CameraUpdateFactory.newLatLng(VL_CENTER);
-        //CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
-
-        mMap.moveCamera(center);
-        //mMap.animateCamera(zoom);
-
-        ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-        if (networkInfo != null && networkInfo.isConnected()) {
-            offline = false;
-            //new Downloader(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
-            new DownloaderArray(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
-            //updateMapWithNewBusLocations();
-            //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current start: " + startStop);
-            //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current end  : " + endStop);
-        }
-        else if (!offline) {
-            offline = true;
-            Context context = getApplicationContext();
-            CharSequence text = getString(R.string.unable_to_connect);
-            int duration = Toast.LENGTH_SHORT;
-
-            if (context != null) {
-                Toast.makeText(context, text, duration).show();
-            }
-        }
-        showBusOnMap();
-
-
-
-    }
 
     @SuppressWarnings("UnusedParameters")
     public void goToGitHub(View view) {

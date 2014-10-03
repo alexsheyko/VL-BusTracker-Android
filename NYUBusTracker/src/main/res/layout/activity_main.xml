@@ -239,6 +239,6 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:background="@drawable/ic_action_about"
-        android:onClick="createInfoDialog1"/>
+        android:onClick="createInfoDialog"/>
 
 </RelativeLayout>

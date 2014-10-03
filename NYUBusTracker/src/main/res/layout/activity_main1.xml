@@ -1,7 +1,7 @@
-<android.support.v4.widget.DrawerLayout
+<android.support.v4.widget.DrawerLayout xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <RelativeLayout android:id="@+id/content"
@@ -9,33 +9,88 @@
         android:layout_height="match_parent"
         xmlns:android="http://schemas.android.com/apk/res/android">
         <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
-            <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:id="@+id/header" android:background="@android:color/white" android:focusable="true" android:focusableInTouchMode="true" android:layout_width="fill_parent" android:layout_height="49.0dip">
+            <LinearLayout android:gravity="center_vertical" android:orientation="horizontal" android:id="@+id/header" android:background="@android:color/white" android:focusable="true" android:focusableInTouchMode="true" android:layout_width="fill_parent" android:layout_height="49.0dip"
+                android:visibility="gone">
                <!-- <ImageButton android:layout_gravity="center_vertical" android:id="@+id/header_back_button" android:background="@android:color/transparent" android:paddingLeft="8.0dip" android:paddingRight="14.0dip" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/back_button" />
                -->
-                <LinearLayout android:orientation="horizontal" android:id="@+id/search_box_layout" android:background="@drawable/search_edittext_background_no_focus" android:layout_width="0.0dip" android:layout_height="35.0dip" android:layout_marginLeft="6.0dip" android:layout_marginRight="15.0dip" android:layout_weight="1.0" >
-                    <ImageView android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="10.0dip" android:layout_marginRight="10.0dip" android:src="@drawable/search_left_view" android:contentDescription="@null" />
+                <LinearLayout android:orientation="horizontal" android:id="@+id/search_box_layout" android:layout_width="0.0dip" android:layout_height="35.0dip" android:layout_marginLeft="6.0dip" android:layout_marginRight="15.0dip" android:layout_weight="1.0" >
+                    <ImageView android:layout_gravity="center" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="10.0dip" android:layout_marginRight="10.0dip" android:src="@drawable/ic_action_search" android:contentDescription="@null" />
                     <EditText android:textSize="17.0sp" android:textColor="@color/search_edit_text_text" android:textColorHint="@color/search_edit_text_hint" android:ellipsize="end" android:id="@+id/search_box" android:background="@android:color/transparent" android:layout_width="0.0dip" android:layout_height="fill_parent" android:hint="@string/search_box_hint" android:singleLine="true" android:layout_weight="1.0" android:imeOptions="actionSearch" />
-                    <ImageButton android:layout_gravity="center" android:id="@+id/suggest_clear_button" android:background="@android:color/transparent" android:paddingLeft="5.0dip" android:paddingRight="5.0dip" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/delete_button" android:layout_weight="0.0"  android:contentDescription="@null" />
+                    <ImageButton android:layout_gravity="center" android:id="@+id/suggest_clear_button" android:background="@android:color/transparent" android:paddingLeft="5.0dip" android:paddingRight="5.0dip" android:visibility="gone" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/ic_action_cancel" android:layout_weight="0.0"  android:contentDescription="@null" />
                 </LinearLayout>
-                <ImageButton android:layout_gravity="center" android:id="@+id/settings_button" android:background="@android:color/transparent" android:paddingLeft="8.0dip" android:paddingRight="22.0dip" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/settings_button" android:layout_weight="0.0" android:contentDescription="@null" />
+                <ImageButton android:layout_gravity="center" android:id="@+id/settings_button" android:background="@android:color/transparent" android:paddingLeft="8.0dip" android:paddingRight="22.0dip" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/ic_action_settings" android:layout_weight="0.0" android:contentDescription="@null" />
             </LinearLayout>
+        <LinearLayout android:gravity="center_vertical" android:visibility="gone" android:orientation="horizontal" android:id="@+id/hiden" android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/start_stop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                android:paddingLeft="@dimen/indented_horizontal_margin"
+                android:paddingStart="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingEnd="@dimen/activity_horizontal_margin"
+                android:textColor="@color/main_text"
+                android:textSize="@dimen/main_text_size"
+                android:text="@string/default_start"/>
+            <TextView
+                android:id="@+id/end_stop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="start"
+                android:paddingBottom="@dimen/activity_vertical_margin"
+                android:paddingLeft="@dimen/indented_horizontal_margin"
+                android:paddingStart="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingEnd="@dimen/activity_horizontal_margin"
+                android:textColor="@color/main_text"
+                android:textSize="@dimen/main_text_size"/>
+
+        </LinearLayout>
+        <LinearLayout android:gravity="center_vertical" android:visibility="gone" android:id="@+id/form_search" android:layout_width="fill_parent" android:layout_height="fill_parent"
+            android:orientation="vertical">
+            <EditText android:id="@+id/inputSearch"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Search products.."
+                android:inputType="textVisiblePassword">
+            <requestFocus />
+            </EditText>
+
+            <!-- List View -->
+            <ListView
+                android:id="@+id/start_stop1"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
         <LinearLayout android:orientation="vertical" android:id="@+id/main_layout" android:layout_width="fill_parent" android:layout_height="fill_parent">
             <RelativeLayout android:id="@+id/map_layout" android:layout_width="fill_parent" android:layout_height="0.0dip" android:layout_weight="1.0">
                 <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
+                    <fragment android:id="@+id/map"
+                        android:name="com.google.android.gms.maps.MapFragment"
+                        xmlns:android="http://schemas.android.com/apk/res/android"
+                        android:layout_width="match_parent"
+                        android:layout_height="fill_parent"
+                        android:layout_below="@+id/safe_ride_button"
+                        tools:layout="@layout/text_bubble" />
                 </LinearLayout>
 
                 <View android:background="@color/map_header_shadow" android:layout_width="fill_parent" android:layout_height="1.0dip" />
 
                 <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true">
-                    <LinearLayout android:orientation="vertical" android:id="@+id/footer_layout" android:background="@android:color/white" android:visibility="gone" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="0.0">
+                    <LinearLayout android:orientation="vertical" android:id="@+id/footer_layout" android:background="@android:color/transparent" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="0.0">
                         <View android:id="@+id/footer_shadow" android:background="@color/map_header_shadow" android:layout_width="fill_parent" android:layout_height="1.0dip" android:layout_alignParentBottom="true" />
-                        <LinearLayout android:orientation="vertical" android:id="@+id/stop_layout" android:background="@android:color/white" android:visibility="gone" android:layout_width="fill_parent" android:layout_height="wrap_content">
+                        <LinearLayout android:orientation="vertical" android:id="@+id/stop_layout" android:background="@android:color/white" android:layout_width="fill_parent" android:layout_height="wrap_content"
+                            android:visibility="gone">
                             <ScrollView android:id="@+id/stop_scroll_view" android:layout_width="fill_parent" android:layout_height="wrap_content" android:fillViewport="true" android:isScrollContainer="false">
                                 <LinearLayout android:orientation="vertical" android:paddingLeft="18.0dip" android:paddingTop="10.0dip" android:paddingRight="18.0dip" android:paddingBottom="10.0dip" android:layout_width="fill_parent" android:layout_height="fill_parent">
                                     <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginBottom="5.0dip">
-                                        <ImageView android:layout_gravity="center_vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="6.0dip" android:src="@drawable/bus_stop_item" android:contentDescription="@null" />
+                                        <ImageView android:layout_gravity="center_vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="6.0dip" android:src="@drawable/ic_action_place" android:contentDescription="@null" />
                                         <TextView android:textSize="18.0sp" android:textColor="@android:color/black" android:layout_gravity="center" android:id="@+id/stop_name" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="10.0" />
-                                        <ImageButton android:layout_gravity="right|center" android:background="@android:color/transparent" android:layout_width="23.0dip" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:src="@drawable/feedback_icon" android:scaleType="fitEnd" android:minWidth="23.0dip" android:layout_weight="1.0"  android:contentDescription="@null" />
+                                        <ImageButton android:layout_gravity="right|center" android:background="@android:color/transparent" android:layout_width="23.0dip" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:src="@drawable/ic_action_warning" android:scaleType="fitEnd" android:minWidth="23.0dip" android:layout_weight="1.0"  android:contentDescription="@null" />
                                     </LinearLayout>
                                     <RelativeLayout android:layout_width="fill_parent" android:layout_height="wrap_content">
                                         <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
@@ -47,19 +102,23 @@
                                 </LinearLayout>
                             </ScrollView>
                         </LinearLayout>
-                        <LinearLayout android:orientation="vertical" android:id="@+id/vehicle_layout" android:background="@android:color/white" android:visibility="gone" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginLeft="12.0dip" android:layout_marginTop="10.0dip" android:layout_marginBottom="10.0dip">
-                            <LinearLayout android:orientation="horizontal" android:background="@android:color/white" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginBottom="5.0dip">
-                                <ImageView android:layout_gravity="center_vertical" android:id="@+id/transport_type" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="5.0dip" android:src="@drawable/bus_icon_16_18" android:contentDescription="@null" />
+                        <LinearLayout android:orientation="vertical" android:id="@+id/bus_layout" android:background="@android:color/transparent"
+                            android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginLeft="12.0dip" android:layout_marginTop="10.0dip" android:layout_marginBottom="10.0dip">
+                            <LinearLayout android:orientation="horizontal"
+                                android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginBottom="0dp">
+                                <ImageView android:layout_gravity="center_vertical" android:id="@+id/transport_type" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="5.0dip" android:src="@drawable/ic_action_directions" android:contentDescription="@null" />
                                 <TextView android:textSize="22.0sp" android:textColor="@android:color/black" android:layout_gravity="center_vertical" android:id="@+id/transport_type_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="5.0dip" />
                                 <TextView android:textSize="22.0sp" android:textColor="@android:color/black" android:layout_gravity="center_vertical" android:id="@+id/transport_name" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                                 <View android:layout_width="0.0dip" android:layout_height="0.0dip" android:layout_weight="1.0" />
-                                <ImageButton android:layout_gravity="right|center" android:background="@android:color/transparent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:src="@drawable/feedback_icon" android:scaleType="fitEnd" android:layout_weight="0.0" android:contentDescription="@null" />
+                                <ImageButton android:layout_gravity="right|center" android:background="@android:color/transparent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:src="@drawable/ic_action_warning" android:scaleType="fitEnd" android:layout_weight="0.0" android:contentDescription="@null"
+                                    android:visibility="gone" />
                             </LinearLayout>
-                            <LinearLayout android:orientation="horizontal" android:paddingRight="10.0dip" android:layout_width="fill_parent" android:layout_height="wrap_content">
+                            <LinearLayout android:orientation="horizontal" android:paddingRight="10.0dip" android:layout_width="fill_parent" android:layout_height="wrap_content"
+                                android:visibility="gone">
                                 <TextView android:textColor="@color/mini_card_gray_text" android:id="@+id/terminal_stations" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                             </LinearLayout>
                         </LinearLayout>
-                        <TextView android:textSize="24.0sp" android:textColor="@android:color/black" android:orientation="vertical" android:id="@+id/search_hint" android:background="@android:color/white" android:visibility="gone" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_marginLeft="18.0dip" android:layout_marginTop="16.0dip" android:layout_marginBottom="16.0dip" />
+                        <TextView android:textSize="12.0sp" android:textColor="@android:color/black" android:orientation="vertical" android:id="@+id/footer_text" android:background="@android:color/transparent" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_marginLeft="18.0dip" android:layout_marginTop="0dp" android:layout_marginBottom="0dp" />
                     </LinearLayout>
                 </LinearLayout>
                 
@@ -71,11 +130,12 @@
     <ListView
         android:id="@+id/left_drawer"
         android:layout_gravity="start"
-        android:background="#ee444444"
-        android:layout_width="250.0dip"
+        android:background="#111"
+        android:layout_width="250dp"
+        android:entries="@array/menu_items"
         android:layout_height="match_parent"
         android:divider="@android:color/transparent"
-        android:dividerHeight="0dip"
+        android:dividerHeight="0dp"
         android:choiceMode="singleChoice" />
 
 </android.support.v4.widget.DrawerLayout>

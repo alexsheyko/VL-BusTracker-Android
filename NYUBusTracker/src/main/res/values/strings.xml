@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">NYU Bus Tracker</string>
+    <string name="app_name">VL BUS</string>
     <string name="call_safe_ride">Tap to call Safe Ride</string>
     <string name="start">Start:</string>
     <string name="default_start">Click to set start stop</string>
@@ -38,6 +38,15 @@
     <string name="action_websearch">О </string>
     <string name="drawer_close">2014 </string>
     <string name="drawer_open">14</string>
+    <string name="drawer_select">Выберете</string>
+    <string name="search_box_hint">Имя остановки или номер маршрута</string>
+    <string-array name="menu_items">
+        <item>Поиск</item>
+        <item>Настройки</item>
+        <item>Информация</item>
+    </string-array>
+    <string name="action_search">Поиск</string>
+
 
     <string name="about_license">Лицензионное соглашение</string>
     <string name="about_other_apps">Другие приложения Яндекса</string>
@@ -85,7 +94,6 @@
     <string name="ok_button_text">OK</string>
     <string name="planned_dialog_message">К сожалению, приложение пока ничего не знает об общественном транспорте этого города. Вы бы хотели, чтобы это изменилось поскорее?</string>
     <string name="planned_dialog_title">Давно ждёте?</string>
-    <string name="search_box_hint">Введите номер маршрута</string>
     <string name="search_found_addresses">Найденные адреса</string>
     <string name="search_url">http://http.mob.maps.yandex.net/mapkit/search/2.x/</string>
     <string name="settings_about_text">О приложении</string>

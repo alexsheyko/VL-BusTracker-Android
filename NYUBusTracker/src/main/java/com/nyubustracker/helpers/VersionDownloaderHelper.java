@@ -29,7 +29,7 @@ public class VersionDownloaderHelper implements DownloaderHelper {
             int newestStopTimeVersion = sharedManager.getTimesVersions().get(stopID);
             if (preferences.getInt(stopID, 0) != newestStopTimeVersion) {
                 if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "*   Actually downloading it!");
-                new Downloader(new TimeDownloaderHelper(), Downloader.getContext()).execute(timeURL);
+                new Downloader(new TimeDownloaderHelper(), Downloader.getContext(),Downloader.getMain()).execute(timeURL);
                 preferences.edit().putInt(stopID, newestStopTimeVersion).apply();
             }
             else if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "*   Not actually downloading it, because we already have the current version.");
