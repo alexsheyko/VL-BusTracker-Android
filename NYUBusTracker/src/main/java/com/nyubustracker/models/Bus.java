@@ -16,6 +16,8 @@ public class Bus {
     private String route;
     private String title ="";
     private String body ="";
+    boolean hidden;
+    //private Integer last_update;
 
     public Bus(String mVehicleID) {
         vehicleID = mVehicleID;
@@ -23,6 +25,11 @@ public class Bus {
     public static void parseJSONA(JSONArray devices) throws JSONException {
         BusManager sharedManager = BusManager.getBusManager();
         if (devices != null) {
+            //hide all
+            for (Bus b : sharedManager.getBuses()) {
+                b.setHidden(true);
+            }
+            //load
             for(int i=0;i<devices.length();i++){
                 JSONArray d = devices.getJSONArray(i);
                 if (d.length()>8){
@@ -44,8 +51,16 @@ public class Bus {
                     String busHeading = d.getString(5);
                     String busTitle = d.getString(6);
                     String busBody = d.getString(1);
+                    Integer LastUpd = Integer.parseInt(d.getString(8));
+                    Boolean hide = true;
+                    if (LastUpd<300) hide=false;
                     Bus b = sharedManager.getBus(vehicleID);
-                    b.setHeading(busHeading).setLocation(busLat, busLng).setRoute(busRoute).setTitle(busTitle).setBody(busBody);
+                    b.setHeading(busHeading)
+                            .setLocation(busLat, busLng)
+                            .setRoute(busRoute)
+                            .setTitle(busTitle)
+                            .setHidden(hide)
+                            .setBody(busBody);
 
 
                 }
@@ -149,6 +164,14 @@ public class Bus {
         return this;
     }
 
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    Bus setHidden(boolean hidden) {
+        this.hidden = hidden;
+        return this;
+    }
     public String getID() {
         return vehicleID;
     }

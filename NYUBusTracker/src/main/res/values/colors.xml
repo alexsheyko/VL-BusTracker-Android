@@ -6,4 +6,34 @@
     <color name="time_list_cell">#A774FF</color>
     <color name="time_list_background">#A774FF</color>
     <color name="time_list_header">#C5A3FF</color>
+
+    <color name="background_bus_color">#ff00c43b</color>
+    <color name="background_general_color">#ffffffff</color>
+    <color name="background_minibus_color">#ff6d6d6d</color>
+    <color name="background_tram_color">#ffe51414</color>
+    <color name="background_trolleybus_color">#ff006eda</color>
+    <color name="dialog_message_text">#ff6d6d6d</color>
+    <color name="edit_text_border">#ffdcdcdc</color>
+    <color name="edit_text_border_focused">#fffedd0a</color>
+    <color name="info_activity_background">#fff5f5f5</color>
+    <color name="info_dialog_button_text">#ff2a7fd7</color>
+    <color name="info_dialog_divider">#ffd0d0d0</color>
+    <color name="map_header_shadow">#33000000</color>
+    <color name="mini_card_gray_text">#ff666666</color>
+    <color name="search_edit_text_hint">#ffb3b3b3</color>
+    <color name="search_edit_text_text">#ff4d4d4d</color>
+    <color name="search_item_description_text">#ff999999</color>
+    <color name="search_item_distance_text">#ffb3b3b3</color>
+    <color name="substrate_bus_color">#ff00922a</color>
+    <color name="substrate_minibus_color">#ff474747</color>
+    <color name="substrate_tram_color">#ffab0f0e</color>
+    <color name="substrate_trolleybus_color">#ff0053a3</color>
+    <color name="suggest_hint_text">#ff7f7f7f</color>
+    <color name="suggest_list_border">#ffd9d9d9</color>
+    <color name="suggest_list_divider">#ffdadada</color>
+    <color name="suggest_list_item_selected_background">#fff5f5f5</color>
+    <color name="suggest_nothing_found_text">#ff808080</color>
+    <color name="suggest_shadow_color">#ffb8b8b8</color>
+    <color name="vehicle_balloon_text_color">#ff000000</color>
+    <color name="vehicle_pressed_balloon_text_color">#ffffffff</color>
 </resources>

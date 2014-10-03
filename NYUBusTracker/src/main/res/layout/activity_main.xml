@@ -4,13 +4,21 @@
                 android:layout_height="match_parent"
                 android:background="@color/time_list_background">
 
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:layout_height="wrap_content">
+
     <LinearLayout
         android:id="@+id/start_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/button_selector"
         android:onClick="createStartDialog"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@+id/loadingPanel" >
 
         <TextView
             android:id="@+id/start"
@@ -37,6 +45,18 @@
             android:textSize="@dimen/main_text_size"
             android:text="@string/default_start"/>
     </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="96dp"
+            android:layout_alignParentRight="true"
+            style="@style/GenericProgressBackground"
+            android:id="@+id/loadingPanel"
+            >
+            <ProgressBar
+                style="@style/GenericProgressIndicator"/>
+        </RelativeLayout>
+    </RelativeLayout>
+
 
     <LinearLayout
         android:id="@+id/end_group"
@@ -135,7 +155,7 @@
               android:layout_height="fill_parent"
               android:layout_below="@+id/safe_ride_button"
         tools:layout="@layout/text_bubble" />
-
+<!-- -->
     <com.nyubustracker.helpers.MultipleOrientationSlidingDrawer
         android:id="@+id/sliding_drawer"
         xmlns:custom="http://schemas.android.com/apk/res-auto/com.nyubustracker"
@@ -201,6 +221,7 @@
 
             </se.emilsjolander.stickylistheaders.StickyListHeadersListView>
         </FrameLayout>
+<!---->
     </com.nyubustracker.helpers.MultipleOrientationSlidingDrawer>
 
     <Button

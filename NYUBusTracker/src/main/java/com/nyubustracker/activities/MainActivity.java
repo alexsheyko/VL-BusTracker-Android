@@ -24,6 +24,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.widget.DrawerLayout;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -32,6 +34,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -137,6 +141,9 @@ public class MainActivity extends Activity {
     public static Handler UIHandler;
     private static final int BUSES_RELOAD_TIMEOUT = 5; //// в секундах
     public static final String STOP_ID_ANY = "-any-"; //// в секундах
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private ActionBarDrawerToggle mDrawerToggle;
 
     static {
         UIHandler = new Handler(Looper.getMainLooper());
@@ -278,13 +285,48 @@ public class MainActivity extends Activity {
         // Else, we have nothing to do, since not all downloads are finished.
     }
 
+
+    private class OnItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView parent, View view, int position, long id) {
+            if (mDrawerLayout != null)
+                mDrawerLayout.closeDrawers();
+            //selectItem(position);
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "onCreate!");
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main1);
+        //http://www.dimasokol.ru/drawerlayout-panel-from-google/
+        //https://developer.android.com/training/implementing-navigation/nav-drawer.html
 
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                R.drawable.ic_drawer, R.string.drawer_open, R.string.drawer_close);
+
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        // Set the adapter for the list view
+        //mDrawerList.setAdapter(new ArrayAdapter<String>(this,
+        //        R.layout.drawer_list_item, mPlanetTitles));
+
+
+        // Этот код обрабатывает нажатия на пункты списка в выезжающей панели.
+        // По такому нажатию мы будем закрывать drawer.
+        mDrawerList.setOnItemClickListener(new OnItemClickListener());
+        // Включим кнопки на action bar
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getActionBar().setHomeButtonEnabled(true);
+
+        //return;
+        /*
         //((NYUBusTrackerApplication) getApplication()).getTracker();
         Bus2Mark = new HashMap<String, Marker>();
         Stop2Mark = new HashMap<String, Marker>();
@@ -403,7 +445,7 @@ public class MainActivity extends Activity {
     public void onResume() {
         super.onResume();
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "onResume!");
-
+/*
         renewBusRefreshTimer();
         setUpMapIfNeeded();
 
@@ -411,6 +453,7 @@ public class MainActivity extends Activity {
             renewTimeUntilTimer();
             setStartAndEndStops();
         }
+        */
     }
 
     @Override
@@ -1010,10 +1053,14 @@ public class MainActivity extends Activity {
         dialog.show();
     }
 
-    private Bitmap getIcoBus(String text,Float angle) {
+    private Bitmap getIcoBus(String text,Float angle, Boolean hide) {
         //BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow)
 
-        Bitmap bm = BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_bus) //ic_bus_arrow
+        Integer idres = R.drawable.ic_map_bus;
+        if (hide){
+            idres = R.drawable.ic_map_bus_hide;
+        }
+        Bitmap bm = BitmapFactory.decodeResource(this.getResources(), idres) //ic_bus_arrow
                 .copy(Bitmap.Config.ARGB_8888, true);
         bm = rotateBitmap(bm,angle);
 
@@ -1092,7 +1139,7 @@ public class MainActivity extends Activity {
                                             BitmapDescriptorFactory.fromBitmap(
 //                                                    rotateBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow), b.getHeading()
                                                     //rotateBitmap(writeTextOnDrawable(b.getTitle()), b.getHeading()
-                                                    getIcoBus(b.getTitle(),b.getHeading())
+                                                    getIcoBus(b.getTitle(),b.getHeading(),b.isHidden())
                                                     //)
 
                                             )
