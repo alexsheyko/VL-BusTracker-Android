@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="google_maps_api_key">AIzaSyC9RAv0LN_XMUQrUh6uEoqJodFASHDRkFk</string>
+    <string name="google_maps_api_k_h">AIzaSyC9RAv0LN_XMUQrUh6uEoqJodFASHDRkFk</string>
+    <string name="google_maps_api_k_w">AIzaSyDR864Fj9WqFklY0hFBV-zsB5TVLaHgcZM</string>
+    <string name="mashape_api_key">rEhZXoGMXSmshQvsc7SESEVr2MSAp1N8XozjsnXcZWEkr8X0o8</string>
+    <string name="google_analytics_tracker">dummy-key</string>
+    <string name="google_analytics_debug_tracker">dummy-key</string>
+    <string name="flurry_api_key">dummy-key</string>
+    <string name="flurry_debug_api_key">dummy-key</string>
+</resources>

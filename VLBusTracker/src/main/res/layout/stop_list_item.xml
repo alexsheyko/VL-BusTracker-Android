@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <CheckBox
+        android:id="@+id/stop_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/main_buttons"
+        android:button="@null"
+        android:checked="false"
+        android:drawableLeft="@drawable/heart_selector"
+        android:focusable="false"
+        android:gravity="center_horizontal"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"/>
+
+    <TextView
+        android:id="@+id/stop_text"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignBottom="@+id/stop_checkbox"
+        android:layout_alignTop="@+id/stop_checkbox"
+        android:layout_toRightOf="@+id/stop_checkbox"
+        android:background="@drawable/button_selector"
+        android:clickable="true"
+        android:ellipsize="end"
+        android:gravity="center_vertical"
+        android:paddingTop="1dp"
+        android:singleLine="true"
+        android:textSize="@dimen/main_text_size"/>
+
+</RelativeLayout>
