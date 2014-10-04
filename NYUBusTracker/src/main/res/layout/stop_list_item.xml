@@ -29,7 +29,6 @@
         android:gravity="center_vertical"
         android:paddingTop="1dp"
         android:singleLine="true"
-        android:text="@string/random_text"
         android:textSize="@dimen/main_text_size"/>
 
 </RelativeLayout>

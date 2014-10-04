@@ -3,27 +3,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
-              android:background="@color/list_background"
               android:orientation="vertical">
-    <RelativeLayout
-        android:id="@+id/loadingPanel"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center" >
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminate="true" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        style="@style/GenericProgressBackground"
-        android:id="@+id/loadingPanel"
-        >
-        <ProgressBar
-            style="@style/GenericProgressIndicator"/>
-    </RelativeLayout>
 
     <TextView
         android:layout_width="wrap_content"
@@ -39,7 +19,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:onClick="goToWebsite"
         android:text="@string/website"
         android:textSize="25sp"/>
 

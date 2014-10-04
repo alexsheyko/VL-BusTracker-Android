@@ -413,10 +413,13 @@ public class MainActivity extends Activity {
             switch (position){
                 case 0:
                     openSearch();
+                    return;
                 case 1:
-                    createInfoDialog(null);
+                    //createInfoDialog(null);
+                    return;
                 case 2:
-                    //createInfoDialog1();
+                    createInfoDialog(null);
+                    return;
                 default:
                     //createInfoDialog();
             }
@@ -758,7 +761,7 @@ public class MainActivity extends Activity {
         }
         return bestLocation;
     }
-
+/*
     void setStartAndEndStops() {
         String end = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getString(END_STOP_PREF, "80 Lafayette St");         // Creates or updates cache file.
         String start = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getString(START_STOP_PREF, "715 Broadway @ Washington Square");
@@ -776,8 +779,9 @@ public class MainActivity extends Activity {
                 setStartStop(endStop);
             }
         }
-        */
+        ***
     }
+    */
 
     // Clear the map of all buses and put them all back on in their new locations.
     private void updateMapWithNewBusLocations() {
@@ -1063,7 +1067,7 @@ public class MainActivity extends Activity {
         });
         */
         //timesAdapter.setTime(currentTime);
-
+/*
         if (BusManager.getBusManager().isNotDuringSafeRide()) {
             String routeText;
             String[] routeArray = nextBusTime.getRoute().split("\\s");
@@ -1078,6 +1082,7 @@ public class MainActivity extends Activity {
             //((TextView) findViewById(R.id.next_bus)).setText(getString(R.string.next_bus_in));
             //findViewById(R.id.safe_ride_button).setVisibility(View.GONE);
         }
+        */
         //else showSafeRideInfoIfNeeded(currentTime);
         //renewBusRefreshTimer();
         renewTimeUntilTimer();
@@ -1533,7 +1538,7 @@ public class MainActivity extends Activity {
                     }
                 }
                 if (busEst.notExpireTime()){
-                    ((TextView) findViewById(R.id.right_layout_title)).setText(busEst.getTitle() + "  №"+ busEst.getBody() );
+                    ((TextView) findViewById(R.id.right_layout_title)).setText(busEst.getTitle() + "   "+ busEst.getBody() );
                 }
 
             }

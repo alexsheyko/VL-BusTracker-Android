@@ -2,12 +2,24 @@
 <resources>
 
     <string name="app_name">VL BUS</string>
-    <string name="call_safe_ride">Tap to call Safe Ride</string>
     <string name="start">Начало:</string>
-    <string name="default_start">Click to set start stop</string>
     <string name="end">Конец:</string>
+    <string name="select_stop">Выберите остановку</string>
+    <string name="information">VL BUS\nАвтобусы владивостока.\n Клиент для сайта map.vl.ru</string>
+    <string name="website">http://map.vl.ru/traffic/buses</string>
+    <string name="programmed_by">Сделано by:</string>
+    <string name="name">ASV</string>
+    <string name="open_source">This app is open source!</string>
+    <string name="github_link">Перейти на GitHub</string>
+    <string name="thanks">Благодарности всем</string>
+    <string name="unable_to_connect">Нет соединения с сетью.</string>
+    <string name="route">"Route "</string>
+    <string name="no_stops_available">Извените. Остановки не доступны.</string>
+
+    <!--
+    <string name="call_safe_ride">Tap to call Safe Ride</string>
+    <string name="default_start">Click to set start stop</string>
     <string name="default_end">Click to set end stop</string>
-    <string name="unable_to_connect">Unable to connect to the network.</string>
     <string name="downloading">Downloading Data</string>
     <string name="wait">Please Wait&#8230;</string>
     <string name="offline">Bus currently offline.</string>
@@ -21,18 +33,8 @@
     <string name="hour_and">"1 hour and "</string>
     <string name="via">"via "</string>
     <string name="next_bus_in">Next Bus In:</string>
-    <string name="information">NYU Bus Tracker\nInformation</string>
-    <string name="programmed_by">Programmed by:</string>
-    <string name="name">Tyler Palsulich</string>
-    <string name="open_source">This app is open source!</string>
-    <string name="github_link">Tap to view on GitHub</string>
-    <string name="thanks">Special thanks to Mike Jaoudi</string>
-    <string name="website">www.nyubustracker.com</string>
-    <string name="random_text">Random Text</string>
-    <string name="route">"Route "</string>
-    <string name="no_stops_available">We\'re sorry. No stops currently available.</string>
     <string name="not_connected">We\'re sorry. Those stops aren\'t connected.</string>
-
+-->
 
     <string name="about_app_name_start">Я</string>
     <string name="action_websearch">О </string>
@@ -46,13 +48,13 @@
         <item>Информация</item>
     </string-array>
     <string name="action_search">Поиск</string>
+    <string name="action_settings">Настройки</string>
 
-
+<!--
     <string name="about_license">Лицензионное соглашение</string>
     <string name="about_other_apps">Другие приложения Яндекса</string>
     <string name="about_other_apps_link" formatted="false">market://search?q=pub:%22%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81%22</string>
     <string name="about_version">Версия 1.0b</string>
-    <string name="action_settings">Settings</string>
     <string name="add_hotspot_dialog_message">Добавить сюда остановку?</string>
     <string name="add_hotspot_dialog_title">Добавление остановки</string>
     <string name="bad_data_dialog_message">К сожалению, Яндекс.Транспорт пока мало знает о маршрутах этого города. Отправлять комментарии и сообщать об ошибках вы можете прямо из приложения.</string>
@@ -117,5 +119,5 @@
     <string name="ymk_lang">ru</string>
     <string name="ymk_meters_short">м</string>
     <string name="ymk_my_place">Мое местоположение</string>
-
+-->
 </resources>
