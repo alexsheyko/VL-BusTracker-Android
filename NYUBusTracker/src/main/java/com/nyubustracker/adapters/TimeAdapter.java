@@ -15,8 +15,8 @@ import java.util.List;
 
 import se.emilsjolander.stickylistheaders.StickyListHeadersAdapter;
 
-public class TimeAdapter extends BaseAdapter implements StickyListHeadersAdapter {
-
+public class TimeAdapter extends BaseAdapter  {
+//implements StickyListHeadersAdapter
     private LayoutInflater inflater;
     private List<Time> times;
     private Time currentTime;
@@ -51,6 +51,7 @@ public class TimeAdapter extends BaseAdapter implements StickyListHeadersAdapter
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
+        /*
         ViewHolder viewHolder;
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.time_list_item, parent, false);
@@ -79,11 +80,14 @@ public class TimeAdapter extends BaseAdapter implements StickyListHeadersAdapter
                 viewHolder.viaRouteText.setText(route);
             }
         }
+        */
         return convertView;
     }
 
+    /*
     @Override
     public View getHeaderView(int position, View convertView, ViewGroup parent) {
+
         HeaderViewHolder holder;
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.time_list_header, parent, false);
@@ -102,13 +106,15 @@ public class TimeAdapter extends BaseAdapter implements StickyListHeadersAdapter
         holder.text.setText(headerText);
         return convertView;
     }
+    */
 
+    /*
     @Override
     public long getHeaderId(int position) {
         //return the first character of the country as ID because this is what headers are based upon
         return times.get(position).getTimeOfWeek().ordinal();
     }
-
+*/
     class HeaderViewHolder {
         TextView text;
     }

@@ -4,6 +4,7 @@ import android.location.Location;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.nyubustracker.R;
 import com.nyubustracker.activities.MainActivity;
 import com.nyubustracker.helpers.BusManager;
 
@@ -41,6 +42,8 @@ public class Stop {
     Stop parent;
     Stop oppositeStop;
     boolean hidden;
+    private long lastUpdateTime;
+
 
     public Stop(String mName, String mLat, String mLng, String mID, String[] mRoutes) {
         name = cleanName(mName);
@@ -93,11 +96,11 @@ public class Stop {
         BusManager sharedManager = BusManager.getBusManager();
 
         String[] routes1 = new String[0];
-        Stop sany = sharedManager.getStop("--any--", "0", "0", MainActivity.STOP_ID_ANY,routes1);
+        Stop sany = sharedManager.getStop("Любая остановка", "0", "0", MainActivity.STOP_ID_ANY,routes1);
         sany.setFavorite(true);
 
         if (stopsJson != null) jStops = stopsJson.getJSONArray(BusManager.TAG_STOP);
-        if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "BusManager current # stops: " + sharedManager.getStops());
+        //if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "BusManager current # stops: " + sharedManager.getStops());
         if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Parsing # stops: " + jStops.length());
         for (int i = 0; i < jStops.length(); i++) {
             //JSONObject stopObject = jStops.getJSONObject(i);
@@ -181,6 +184,9 @@ public class Stop {
             if (childStop.hasTimes()) return true;
         }
         return false;
+    }
+    public void cleanTime() {
+        times.clear();
     }
 
     public String getOtherRoute() {
@@ -333,6 +339,17 @@ public class Stop {
         return result;
     }
 
+    public ArrayList<Time> getTimes() {
+        ArrayList<Time> result = new ArrayList<Time>();
+        if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.LOG_TAG, "Times : (" + times.size() + " for " + this.getName() +" "+this.getID()+ ")");
+        for (Time t : times) {
+                if (t.notExpire()) {
+                    result.add(t);
+                }
+        }
+        return result;
+    }
+
     public boolean isRelatedTo(Stop stop) {
         if (stop==null) return false;
         return (this.getUltimateName().equals(stop.getUltimateName()));
@@ -352,6 +369,17 @@ public class Stop {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setLastUpdateTime(Long time) {
+        this.lastUpdateTime = time;
+    }
+
+    public Boolean notExpireTime() {
+        if((System.currentTimeMillis()-lastUpdateTime)>1000*60){
+            return false;
+        }else return true;
+
     }
 
     public List<Route> getRoutesTo(Stop endStop) {

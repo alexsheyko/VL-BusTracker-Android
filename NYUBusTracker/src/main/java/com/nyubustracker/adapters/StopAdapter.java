@@ -7,19 +7,24 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import com.nyubustracker.R;
+import com.nyubustracker.activities.MainActivity;
 import com.nyubustracker.models.Stop;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class StopAdapter extends BaseAdapter {
+public class StopAdapter extends BaseAdapter implements Filterable {
 
     private final LayoutInflater mInflater;
     private final View.OnClickListener textOnClickListener;
     private final CompoundButton.OnCheckedChangeListener checkBoxOnCLickListener;
     private ArrayList<Stop> stops = new ArrayList<Stop>();
+    private ArrayList<Stop> filterStops = new ArrayList<Stop>();
 
     // Constructor. Just used to initialize variables.
     public StopAdapter(Context context, ArrayList<Stop> mStops, View.OnClickListener listener, CompoundButton.OnCheckedChangeListener cbListener) {
@@ -28,6 +33,7 @@ public class StopAdapter extends BaseAdapter {
         // Cache the LayoutInflate to avoid asking for a new one each time.
         mInflater = LayoutInflater.from(context);
         stops = mStops;
+        filterStops = mStops;
     }
 
     // Number of elements feeding into this adapter.
@@ -84,5 +90,54 @@ public class StopAdapter extends BaseAdapter {
     class ViewHolder {
         CheckBox checkbox;
         TextView text;
+    }
+
+    @Override
+    public Filter getFilter() {
+
+        Filter filter = new Filter() {
+
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                if (results.count == 0) {
+                    //stops = (ArrayList<Stop>) results.values;
+                    //notifyDataSetChanged();
+                    notifyDataSetInvalidated();
+                }else {
+                    stops = (ArrayList<Stop>) results.values;
+                    notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+
+                FilterResults results = new FilterResults();
+                if (constraint == null || constraint.length() == 0) {
+                    results.values = filterStops;
+                    results.count = filterStops.size();
+                }else {
+                    List<Stop> FilteredArray = new ArrayList<Stop>();
+
+                    constraint = constraint.toString().toLowerCase();
+                    for (int i = 0; i < filterStops.size(); i++) {
+                        Stop stop = filterStops.get(i);
+                        if (stop.getID()== MainActivity.STOP_ID_ANY){
+                            FilteredArray.add(stop);
+                        }
+                        if (stop.getName().toLowerCase().startsWith(constraint.toString())) {
+                            FilteredArray.add(stop);
+                        }
+                    }
+                    results.count = FilteredArray.size();
+                    results.values = FilteredArray;
+                }
+
+                return results;
+            }
+        };
+
+        return filter;
     }
 }

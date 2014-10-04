@@ -1,13 +1,17 @@
 package com.nyubustracker.models;
 
+import android.util.Log;
 import android.view.ViewDebug;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.nyubustracker.activities.MainActivity;
 import com.nyubustracker.helpers.BusManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class Bus {
     private String vehicleID = "";
@@ -16,11 +20,14 @@ public class Bus {
     private String route;
     private String title ="";
     private String body ="";
+    ArrayList<Time> times = null;
     boolean hidden;
+    private long lastUpdateTime;
     //private Integer last_update;
 
     public Bus(String mVehicleID) {
         vehicleID = mVehicleID;
+        times = new ArrayList<Time>();
     }
     public static void parseJSONA(JSONArray devices) throws JSONException {
         BusManager sharedManager = BusManager.getBusManager();
@@ -118,6 +125,41 @@ public class Bus {
     Bus setLocation(String lat, String lng) {
         loc = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
         return this;
+    }
+
+    public void setLastUpdateTime(Long time) {
+        this.lastUpdateTime = time;
+    }
+
+    public void cleanTime() {
+        times.clear();
+    }
+
+    public void addTime(Time t) {
+        times.add(t);
+    }
+
+    public Boolean notExpireTime() {
+        if((System.currentTimeMillis()-lastUpdateTime)>1000*60){
+            return false;
+        }else return true;
+
+    }
+
+    public ArrayList<Time> getTimes() {
+        ArrayList<Time> result = new ArrayList<Time>();
+        if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.LOG_TAG, "Times bud: (" + times.size() + " for " + this.getTitle() + " " + this.getID() + ")");
+        for (Time t : times) {
+            if (t.notExpire()) {
+                result.add(t);
+            }
+        }
+
+        /*for (Stop childStop : childStops) {
+            result.addAll(childStop.getTimesOfRoute(route));
+        }*/
+
+        return result;
     }
 
     public LatLng getLocation() {

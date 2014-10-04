@@ -198,6 +198,7 @@ public final class BusManager {
     }
 
     private static void getTimes(JSONObject routeTimes, String tag, Stop s, Time.TimeOfWeek timeOfWeek) throws JSONException {
+        /*
         if (routeTimes.has(tag)) {
             JSONArray timesJson = routeTimes.getJSONArray(tag);
             if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.LOG_TAG, "Found " + timesJson.length() + " " + timeOfWeek + " times.");
@@ -211,6 +212,7 @@ public final class BusManager {
                 s.addTime(new Time(timesJson.getString(k), timeOfWeek, route));
             }
         }
+        */
     }
 
     public static void parseSegments(JSONObject segmentsJSON) throws JSONException {

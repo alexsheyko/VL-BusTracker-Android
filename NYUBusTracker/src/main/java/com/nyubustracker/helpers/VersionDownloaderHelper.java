@@ -18,7 +18,7 @@ public class VersionDownloaderHelper implements DownloaderHelper {
 
     @Override
     public void parse(JSONObject jsonObject) throws JSONException, IOException {
-
+/*
         BusManager sharedManager = BusManager.getBusManager();
         BusManager.parseVersion(jsonObject);
         Downloader.cache(VERSION_JSON_FILE, jsonObject);
@@ -34,6 +34,7 @@ public class VersionDownloaderHelper implements DownloaderHelper {
             }
             else if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "*   Not actually downloading it, because we already have the current version.");
         }
+        */
     }
     public void parseArray(JSONArray jsonObject) throws JSONException, IOException {
     }

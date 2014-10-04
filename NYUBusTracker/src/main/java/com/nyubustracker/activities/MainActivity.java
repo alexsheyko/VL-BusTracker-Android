@@ -95,11 +95,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -134,6 +137,8 @@ public class MainActivity extends Activity {
     private HashMap<String, Boolean> clickableMapMarkers;   // Hash of all markers which are clickable (so we don't zoom in on buses).
     private HashMap<String, Marker> Bus2Mark;   //
     private HashMap<String, Marker> Stop2Mark;   //
+    public String stopIdEstimate;
+    public String busIdEstimate;
     private ArrayList<Marker> busesOnMap = new ArrayList<Marker>();
     private TextSwitcher mSwitcher;
     private String mSwitcherCurrentText;
@@ -154,7 +159,8 @@ public class MainActivity extends Activity {
     private ActionBarDrawerToggle mDrawerToggle;
     private CharSequence mTitle;
     private ListView lv;
-    StopAdapter adapter;
+    StopAdapter adapter_start;
+    StopAdapter adapter_end;
 
     // Search EditText
     EditText inputSearch;
@@ -192,14 +198,54 @@ public class MainActivity extends Activity {
                 mMap.getUiSettings().setZoomControlsEnabled(true);
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
                 //mMap.setMyLocationEnabled(true);
-                /*
+
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
                     public boolean onMarkerClick(Marker marker) {
-                        return !clickableMapMarkers.get(marker.getId());    // Return true to consume the event.
+                        if (Stop2Mark.containsValue( marker)){
+                            Iterator entries = Stop2Mark.entrySet().iterator();
+                            String idmarker = marker.getId();
+                            while (entries.hasNext()) {
+                                Map.Entry thisEntry = (Map.Entry) entries.next();
+                                Object key = thisEntry.getKey();
+
+                                Marker mMarker = Stop2Mark.get(key);
+                                if (mMarker != null) {
+                                    if (idmarker.equals(mMarker.getId())){
+                                        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Set stop Estimate " + key.toString() + "");
+                                        stopIdEstimate = key.toString();
+                                        ((TextView) findViewById(R.id.left_layout_title)).setText("Загружаем");
+                                    }
+                                }
+                            }
+                        }
+
+                        if (Bus2Mark.containsValue( marker)){
+                            Iterator entries = Bus2Mark.entrySet().iterator();
+                            String idmarker = marker.getId();
+                            while (entries.hasNext()) {
+                                Map.Entry thisEntry = (Map.Entry) entries.next();
+                                Object key = thisEntry.getKey();
+                                Marker mMarker = Bus2Mark.get(key);
+                                if (mMarker != null) {
+                                    if (idmarker.equals(mMarker.getId())){
+                                        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Set bus Estimate " + key.toString() + "");
+                                        busIdEstimate = key.toString();
+                                        ((TextView) findViewById(R.id.right_layout_title)).setText("Загружаем");
+                                    }
+                                }
+                            }
+                        }
+
+
+
+                        marker.showInfoWindow();
+
+                        return true;
+                                //!clickableMapMarkers.get(marker.getId());    // Return true to consume the event.
                     }
                 });
-                */
+
 
 
                 mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener(){
@@ -218,7 +264,7 @@ public class MainActivity extends Activity {
                 mMap.moveCamera(center);
                 mMap.animateCamera(zoom);
             }
-        }
+        }//map null
     }
 
     String readSavedData(String fileName) throws JSONException {
@@ -228,6 +274,12 @@ public class MainActivity extends Activity {
             File path = new File(getFilesDir(), Downloader.CREATED_FILES_DIR);
             path.mkdir();
             File file = new File(path, fileName);
+
+            if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "File time " + file.lastModified() + ":" + System.currentTimeMillis());
+            if ((System.currentTimeMillis()-file.lastModified()>1000*60*60*24)||(System.currentTimeMillis()-file.lastModified()<0)){
+                if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Old file " + fileName + "...");
+                throw new JSONException("Failed to read " + fileName);
+            }
             FileInputStream inputStream = new FileInputStream(file);
             InputStreamReader streamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(streamReader);
@@ -386,13 +438,10 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "onCreate!");
-        //setContentView(R.layout.activity_main);
         setContentView(R.layout.activity_main1);
-
 
         //http://www.dimasokol.ru/drawerlayout-panel-from-google/
         //https://developer.android.com/training/implementing-navigation/nav-drawer.html
-
         mTitle = getTitle();
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -421,12 +470,9 @@ public class MainActivity extends Activity {
         //mDrawerList.setAdapter(new ArrayAdapter<String>(this,
         //        R.layout.drawer_list_item, mPlanetTitles));
 
-
         // Этот код обрабатывает нажатия на пункты списка в выезжающей панели.
         // По такому нажатию мы будем закрывать drawer.
         mDrawerList.setOnItemClickListener(new OnItemClickListener());
-
-
 
         //((NYUBusTrackerApplication) getApplication()).getTracker();
         Bus2Mark = new HashMap<String, Marker>();
@@ -472,27 +518,27 @@ public class MainActivity extends Activity {
         //timesAdapter = new TimeAdapter(getApplicationContext(), new ArrayList<Time>());
         //timesList.setAdapter(timesAdapter);
 
-        downloadEverything(true);
-        renewBusRefreshTimer();
+        //downloadEverything(true);
 
-        /*
         if (oncePreferences.getBoolean(FIRST_TIME, true)) {
             if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Downloading because of first time");
             downloadEverything(true);
         }
         else {
-            if (!sharedManager.hasRoutes() || !sharedManager.hasStops()) {
                 if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Parsing cached files...");
                 try {
-                    JSONObject stopJson = new JSONObject(readSavedData(StopDownloaderHelper.STOP_JSON_FILE));
-                    JSONObject routeJson = new JSONObject(readSavedData(RouteDownloaderHelper.ROUTE_JSON_FILE));
-                    JSONObject segJson = new JSONObject(readSavedData(SegmentDownloaderHelper.SEGMENT_JSON_FILE));
-                    JSONObject verJson = new JSONObject(readSavedData(VersionDownloaderHelper.VERSION_JSON_FILE));
-                    Stop.parseJSON(stopJson);
-                    Route.parseJSON(routeJson);
-                    BusManager.parseSegments(segJson);
-                    BusManager.parseVersion(verJson);
+                    //JSONObject stopJson = new JSONObject(readSavedData(StopDownloaderHelper.STOP_JSON_FILE));
+                    //JSONObject routeJson = new JSONObject(readSavedData(RouteDownloaderHelper.ROUTE_JSON_FILE));
+                    //JSONObject segJson = new JSONObject(readSavedData(SegmentDownloaderHelper.SEGMENT_JSON_FILE));
+                    //JSONObject verJson = new JSONObject(readSavedData(VersionDownloaderHelper.VERSION_JSON_FILE));
+                    JSONObject argJson = new JSONObject(readSavedData(AggregateDownloaderHelper.ARG_JSON_FILE));
+                    Stop.parseJSON(argJson.getJSONObject("data"));
+                    Route.parseJSON(argJson.getJSONObject("data"));
+
+                    //BusManager.parseSegments(segJson);
+                    //BusManager.parseVersion(verJson);
                     Context context = getApplicationContext();
+                    /*
                     for (String timeURL : sharedManager.getTimesToDownload()) {
                         String timeFileName = timeURL.substring(timeURL.lastIndexOf("/") + 1, timeURL.indexOf(".json"));
                         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Trying to parse " + timeFileName);
@@ -504,34 +550,35 @@ public class MainActivity extends Activity {
                             new Downloader(new TimeDownloaderHelper(), context).execute(timeURL);
                         }
                     }
+                    */
+                    /*
                     SharedPreferences favoritePreferences = getSharedPreferences(Stop.FAVORITES_PREF, MODE_PRIVATE);
                     if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Done parsing...");
                     for (Stop s : sharedManager.getStops()) {
                         boolean result = favoritePreferences.getBoolean(s.getID(), false);
                         s.setFavorite(result);
                     }
-                    new Downloader(new VersionDownloaderHelper(), context).execute(DownloaderHelper.VERSION_URL);
-                    setStartAndEndStops();
+                    */
+                    //new Downloader(new VersionDownloaderHelper(), context).execute(DownloaderHelper.VERSION_URL);
+                    //setStartAndEndStops();
 
                     // Update the map to show the corresponding stops, buses, and segments.
-                    updateMapWithNewStartOrEnd();
+                    //updateMapWithNewStartOrEnd();
 
                     // Get the location of the buses every 10 sec.
-                    renewBusRefreshTimer();
-                    renewTimeUntilTimer();
-                    setNextBusTime();
+                    //renewBusRefreshTimer();
+                    //renewTimeUntilTimer();
+                    //setNextBusTime();
                 } catch (JSONException e) {
                     if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Re-downloading because of an error.");
                     e.printStackTrace();
                     downloadEverything(true);
                 }
-            }
-            else {
-                setStartAndEndStops();
-                updateMapWithNewStartOrEnd();
-            }
         }
-        */
+        renewBusRefreshTimer();
+        createSearch();
+
+
     }
 
     @Override
@@ -547,10 +594,10 @@ public class MainActivity extends Activity {
     public void onResume() {
         super.onResume();
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "onResume!");
-/*
-        renewBusRefreshTimer();
-        setUpMapIfNeeded();
 
+        renewBusRefreshTimer();
+        createMap();
+/*
         if (endStop != null && startStop != null) {
             renewTimeUntilTimer();
             setStartAndEndStops();
@@ -591,7 +638,10 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         //if (drawer.isOpened()) drawer.animateClose();
         //else
-        super.onBackPressed();
+        if (findViewById(R.id.form_search).getVisibility()==View.VISIBLE) {
+            closeSearch();
+        }else
+            super.onBackPressed();
     }
 
     void cacheStartAndEndStops() {
@@ -602,7 +652,7 @@ public class MainActivity extends Activity {
     }
 
     void sayBusIsOffline() {
-        updateNextTimeSwitcher(getString(R.string.offline));
+        //updateNextTimeSwitcher(getString(R.string.offline));
         //((TextView) findViewById(R.id.next_bus)).setText("");
         //((TextView) findViewById(R.id.next_route)).setText("");
     }
@@ -648,6 +698,13 @@ public class MainActivity extends Activity {
                             //new Downloader(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.VEHICLES_URL);
                             //setProgressBarIndeterminateVisibility(true);
                             new DownloaderArray(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
+                            if ((stopIdEstimate!=null)&&(stopIdEstimate.length()>0)){
+                                new DownloaderArray(new TimeDownloaderHelper(stopIdEstimate,1), getApplicationContext()).execute(DownloaderHelper.STOP_TIME_URL+stopIdEstimate);
+                            }
+                            if ((busIdEstimate!=null)&&(busIdEstimate.length()>0)){
+                                new DownloaderArray(new TimeDownloaderHelper(busIdEstimate,2), getApplicationContext()).execute(DownloaderHelper.BUS_TIME_URL+busIdEstimate);
+                            }
+
                             showBusOnMap();
                             //setProgressBarIndeterminateVisibility(false);
                             //if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Current start: " + startStop);
@@ -837,7 +894,8 @@ public class MainActivity extends Activity {
 
     private void setEndStop(Stop stop) {
         if (stop == null) {
-            ((TextView) findViewById(R.id.end_stop)).setText(getString(R.string.default_end));
+            //((TextView) findViewById(R.id.end_stop)).setText(getString(R.string.default_end));
+            printStop();
             //if (drawer.isOpened()) drawer.animateClose();
             endStop = null;
             //routesBetweenStartAndEnd = null;
@@ -852,7 +910,8 @@ public class MainActivity extends Activity {
         List<Route> routes = startStop.getRoutesTo(stop);
         if (routes != null && routes.size() > 0 && stop != startStop) {
             endStop = stop;
-            ((TextView) findViewById(R.id.end_stop)).setText(stop.getUltimateName());
+            //((TextView) findViewById(R.id.end_stop)).setText(stop.getUltimateName());
+            printStop();
             if (startStop != null) {
                 if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Start stop: " + startStop);
                 if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "End stop: " + endStop);
@@ -893,9 +952,9 @@ public class MainActivity extends Activity {
     }
 
     private void setStartStop(Stop stop) {
+        printStop();
         if (stop == null) {
             startStop = null;
-            ((TextView) findViewById(R.id.start_stop)).setText(getString(R.string.default_start));
             setNextBusTime();
             return;
         }
@@ -904,12 +963,14 @@ public class MainActivity extends Activity {
             // Swap the start and end stops.
             Stop temp = startStop;
             startStop = endStop;
-            ((TextView) findViewById(R.id.start_stop)).setText(startStop.getUltimateName());
+            //((TextView) findViewById(R.id.stop_name)).setText(startStop.getUltimateName());
+            printStop();
             setEndStop(temp);
         }
         else { // We have a new start. So, we must ensure the end is actually connected. If not, pick the first connected stop.
             startStop = stop;
-            ((TextView) findViewById(R.id.start_stop)).setText(stop.getUltimateName());
+            //((TextView) findViewById(R.id.stop_name)).setText(stop.getUltimateName());
+            printStop();
             if (endStop != null) {
                 List<Route> routes = startStop.getRoutesTo(endStop);
                 if (routes == null) {   // Stops aren't connected.
@@ -939,7 +1000,8 @@ public class MainActivity extends Activity {
 
         if (startStop==null){
             routesBetweenStartAndEnd = null;
-            updateNextTimeSwitcher("");
+            //updateNextTimeSwitcher("");
+            printRoutes("");
             return;
         }
         // Find the best pair of start and end related to this pair, since Stops can "combine"
@@ -952,7 +1014,9 @@ public class MainActivity extends Activity {
         for (Route r : routesBetweenStartAndEnd) {
             Str = Str + r.getLongName() +",";
         }
-        updateNextTimeSwitcher(Str);
+        printRoutes(Str);
+        //updateNextTimeSwitcher(Str);
+
 
         timesBetweenStartAndEnd = startStop.getTimesToOn(endStop, routesBetweenStartAndEnd);
         //timesAdapter.setDataSet(timesBetweenStartAndEnd);
@@ -974,12 +1038,14 @@ public class MainActivity extends Activity {
         }
         //drawer.setAllowSingleTap(true);
         //drawer.unlock();
+        /*
         final Time currentTime = Time.getCurrentTime();
         ArrayList<Time> tempTimesBetweenStartAndEnd = new ArrayList<Time>(timesBetweenStartAndEnd);
         tempTimesBetweenStartAndEnd.add(currentTime);
         Collections.sort(tempTimesBetweenStartAndEnd, Time.compare);
         Collections.sort(timesBetweenStartAndEnd, Time.compare);
-
+        */
+/*
         int index = tempTimesBetweenStartAndEnd.indexOf(currentTime);
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Index: " + index + " | size: " + tempTimesBetweenStartAndEnd.size());
         int nextTimeTempIndex = (index + 1) % tempTimesBetweenStartAndEnd.size();
@@ -995,6 +1061,7 @@ public class MainActivity extends Activity {
                 timesList.setSelection(nextTimeIndex);
             }
         });
+        */
         //timesAdapter.setTime(currentTime);
 
         if (BusManager.getBusManager().isNotDuringSafeRide()) {
@@ -1030,13 +1097,35 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void printStop(){
+        String str="";
+        if (startStop==null){
+            str =  ""; // R.string.default_start;
+        }else{
+            str =  startStop.getName();
+        }
+        if (endStop==null){
+            //str =  str + " " + R.string.default_start;
+        }else{
+            str =  str + " - " +endStop.getName();
+        }
+        ((TextView) findViewById(R.id.stop_name)).setText(str);
+
+    }
+
+    private void printRoutes(final String newText){
+        ((TextView) findViewById(R.id.transport_name)).setText(newText);
+
+    }
+
+    /*
     private void updateNextTimeSwitcher(final String newSwitcherText){
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Updating switcher to [" + newSwitcherText + "]");
         //if (drawer != null && !drawer.isMoving() &&
-        if(!mSwitcherCurrentText.equals(newSwitcherText)) {
-            mSwitcher.setText(newSwitcherText);  // Pass resources so we return the proper string value.
-            mSwitcherCurrentText = newSwitcherText;
-        }
+        //if(!mSwitcherCurrentText.equals(newSwitcherText)) {
+        //    mSwitcher.setText(newSwitcherText);  // Pass resources so we return the proper string value.
+        //    mSwitcherCurrentText = newSwitcherText;
+        //}
         // Handle a bug where the time until text disappears when the drawer is being moved. So, just wait for it to finish.
         // We don't know if the drawer will end up open or closed, though. So handle both cases.
         /*
@@ -1055,8 +1144,9 @@ public class MainActivity extends Activity {
                     mSwitcherCurrentText = newSwitcherText;
                 }
             });
-        }*/
+        }**
     }
+    */
 
     @SuppressWarnings("UnusedParameters")
     public void callSafeRide(View view) {
@@ -1067,10 +1157,30 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings("UnusedParameters")
     public void createEndDialog(View view) {
+        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "CreateEndDialog.");
         // Get all stops connected to the start stop.
         final ArrayList<Stop> connectedStops = BusManager.getBusManager().getConnectedStops(startStop);
         if (connectedStops.size() > 0) {
-            ListView listView = new ListView(this);     // ListView to populate the dialog.
+
+            //ListView listView = new ListView(this);
+            ListView listView = (ListView) findViewById(R.id.end_stop1);
+            adapter_end = new StopAdapter(getApplicationContext(), connectedStops, new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Stop s = (Stop) view.getTag();
+                    if (s.getID()==MainActivity.STOP_ID_ANY) {
+                        s = null;
+                        endStop = null;
+                    }
+                    closeSearch();
+                    setEndStop(s);    // Actually set the start stop.
+                    //dialog.dismiss();
+                }
+            }, cbListener);
+
+            listView.setAdapter(adapter_end);
+
+            /*ListView listView = new ListView(this);     // ListView to populate the dialog.
             listView.setId(R.id.end_stop_list);
             listView.setDivider(new ColorDrawable(getResources().getColor(R.color.time_list_background)));
             listView.setDividerHeight(2);
@@ -1097,6 +1207,7 @@ public class MainActivity extends Activity {
             listView.setAdapter(adapter);
             dialog.setCanceledOnTouchOutside(true);
             dialog.show();  // Dismissed when a stop is clicked.
+            */
         }
         else if (startStop != null) {
             displayStopError();
@@ -1105,12 +1216,13 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings("UnusedParameters")
     public void createStartDialog(View view) {
+        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "CreateStart.");
 
         final ArrayList<Stop> stops = BusManager.getBusManager().getStops();    // Show every stop as an option to start.
         if (stops.size() > 0) {
 
             lv = (ListView) findViewById(R.id.start_stop1);
-            adapter = new StopAdapter(getApplicationContext(), stops, new View.OnClickListener() {
+            adapter_start = new StopAdapter(getApplicationContext(), stops, new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Stop s = (Stop) view.getTag();
@@ -1118,35 +1230,14 @@ public class MainActivity extends Activity {
                         s = null;
                         startStop = null;
                     }
-                    //setStartStop(s);    // Actually set the start stop.
+                    closeSearch();
+                    setStartStop(s);    // Actually set the start stop.
                     //dialog.dismiss();
                 }
             }, cbListener);
 
             //adapter = new ArrayAdapter<String>(this, R.layout.stop_list_item1, R.id.stop_text, stops);
-            lv.setAdapter(adapter);
-            inputSearch = (EditText) findViewById(R.id.inputSearch);
-            inputSearch.addTextChangedListener(new TextWatcher() {
-
-                @Override
-                public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
-                    // When user changed the Text
-                    //MainActivity.this.adapter.getFilter().filter(cs);
-                }
-
-                @Override
-                public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
-                                              int arg3) {
-                    // TODO Auto-generated method stub
-
-                }
-
-                @Override
-                public void afterTextChanged(Editable arg0) {
-                    // TODO Auto-generated method stub
-                }
-            });
-
+            lv.setAdapter(adapter_start);
 
 /*
             ListView listView = new ListView(this);
@@ -1188,13 +1279,114 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void  createSearch(){
+        //************** START STOP
+        EditText inputSearch = (EditText) findViewById(R.id.SearchStart);
+        inputSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
+                // When user changed the Text
+                if (MainActivity.this.adapter_start!=null)
+                    MainActivity.this.adapter_start.getFilter().filter(cs);
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+                                          int arg3) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable arg0) {
+                // TODO Auto-generated method stub
+            }
+        });
+        inputSearch.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(hasFocus){
+                    //Toast.makeText(getApplicationContext(), "got the focus", Toast.LENGTH_LONG).show();
+                    findViewById(R.id.start_stop1).setVisibility(View.VISIBLE);
+                }else {
+                    //Toast.makeText(getApplicationContext(), "lost the focus", Toast.LENGTH_LONG).show();
+                    findViewById(R.id.start_stop1).setVisibility(View.GONE);
+
+                }
+            }
+        });
+
+        // ********* END STOP
+        inputSearch = (EditText) findViewById(R.id.SearchEnd);
+        inputSearch.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
+                // When user changed the Text
+                if (MainActivity.this.adapter_end!=null)
+                    MainActivity.this.adapter_end.getFilter().filter(cs);
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+                                          int arg3) {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable arg0) {
+                // TODO Auto-generated method stub
+            }
+        });
+        inputSearch.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(hasFocus){
+                    //Toast.makeText(getApplicationContext(), "got the focus", Toast.LENGTH_LONG).show();
+                    findViewById(R.id.end_stop1).setVisibility(View.VISIBLE);
+                }else {
+                    //Toast.makeText(getApplicationContext(), "lost the focus", Toast.LENGTH_LONG).show();
+                    findViewById(R.id.end_stop1).setVisibility(View.GONE);
+
+                }
+            }
+        });
+
+
+    }
+    public void closeSearch() {
+        //if stop load
+        findViewById(R.id.form_search).setVisibility(View.GONE);
+        findViewById(R.id.main_layout).setVisibility(View.VISIBLE);
+
+        //createStartDialog(null);
+    }
 
     public void openSearch(){
         //if stop load
         findViewById(R.id.form_search).setVisibility(View.VISIBLE);
         findViewById(R.id.main_layout).setVisibility(View.GONE);
 
+
         createStartDialog(null);
+        createEndDialog(null);
+
+        inputSearch = (EditText) findViewById(R.id.SearchStart);
+        if (startStop!=null){
+            inputSearch.setText(startStop.getName());
+        }else{
+            inputSearch.setText("");
+        }
+
+        inputSearch = (EditText) findViewById(R.id.SearchEnd);
+        if (endStop!=null){
+            inputSearch.setText(endStop.getName());
+        }else{
+            inputSearch.setText("");
+        }
+
+
 /*
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         LinearLayout linearLayout = (LinearLayout) getLayoutInflater()
@@ -1290,13 +1482,65 @@ public class MainActivity extends Activity {
             setProgressBarIndeterminateVisibility(false);
             showStopOnMap();
         }
+        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
 
         String st= "";
         st = st +"/"+ Integer.toString(sharedManager.getStops().size());
         st = st +"/"+ Integer.toString(sharedManager.getBuses().size());
+        double left = bounds.southwest.longitude;
+        double top = bounds.northeast.latitude;
+        double right = bounds.northeast.longitude;
+        double bottom = bounds.southwest.latitude;
+        //st = st +"/"+ Double.toString(left);
+        //st = st +"/"+ Double.toString(right);
+        st = st +"/"+ Double.toString(right-left);
         ((TextView) findViewById(R.id.footer_text)).setText(st+"/"+t);
 
-        LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+        String str_times="";
+        if ((stopIdEstimate!=null)&&(stopIdEstimate.length()>0)){
+            Stop stopEst = sharedManager.getStopByID(stopIdEstimate);
+
+            if (stopEst!=null){
+                for (Time tim : stopEst.getTimes()){
+                    str_times=str_times+" " + sharedManager.getRouteByID(tim.getRoute()) + ":" + tim.getTimeAsString() + "\n";
+                }
+                if (stopEst.notExpireTime()){
+                    ((TextView) findViewById(R.id.left_layout_title)).setText(stopEst.getName());
+                }
+
+            }
+        }
+        ((TextView) findViewById(R.id.left_layout_text)).setText(str_times);
+
+        str_times="";
+        if ((busIdEstimate!=null)&&(busIdEstimate.length()>0)){
+            Bus busEst = sharedManager.getBus(busIdEstimate);
+
+            if (busEst!=null){
+                for (Time tim : busEst.getTimes()){
+                    Stop stop = sharedManager.getStopByID(tim.getRoute());
+                    Integer i = 0;
+
+                    if (stop!=null) {
+                        String name = stop.getName();
+                        if (name.length()>12) {
+                            name = name.substring(0, 10)+"..";
+                        }
+                        i=i+1;
+                        if (i<=20) {
+                            str_times = str_times + " " + tim.getTimeAsString() + ":" + name + "\n";
+                        }
+                    }
+                }
+                if (busEst.notExpireTime()){
+                    ((TextView) findViewById(R.id.right_layout_title)).setText(busEst.getTitle() + "  №"+ busEst.getBody() );
+                }
+
+            }
+        }
+        ((TextView) findViewById(R.id.right_layout_text)).setText(str_times);
+
+
 
         for (Bus b : sharedManager.getBuses()) {
             //if (LOCAL_LOGV) Log.v("BusLocations", "bus id: " + b.getID() + ", bus route: " + b.getRoute() + " vs route: " + r.getID());
@@ -1329,7 +1573,7 @@ public class MainActivity extends Activity {
                                     )
                                     .anchor(0.5f, 0.5f)
                                     .title(b.getTitle())
-                                    .snippet("Population: " + b.getBody())
+                                    .snippet("№№: " + b.getBody())
                     );
                     Bus2Mark.put(b.getID(), mMarker);
                 }else{ //change pos
@@ -1350,14 +1594,7 @@ public class MainActivity extends Activity {
                     }
                 }
             }
-            //clickableMapMarkers.put(mMarker.getId(), false);    // Unable to click on buses.
-            //busesOnMap.add(mMarker);
-            //}
-            //POS_ON_MAP = b.getLocation();
-        }
-
-        //center=CameraUpdateFactory.newLatLng(POS_ON_MAP);
-        // mMap.moveCamera(center);
+        }//for bus
 
     }
 
@@ -1365,51 +1602,55 @@ public class MainActivity extends Activity {
 
         BusManager sharedManager = BusManager.getBusManager();
         LatLngBounds bounds = mMap.getProjection().getVisibleRegion().latLngBounds;
+        double left = bounds.southwest.longitude;
+        double top = bounds.northeast.latitude;
+        double right = bounds.northeast.longitude;
+        double bottom = bounds.southwest.latitude;
 
-        for (Stop b : sharedManager.getStops()) {
-            //if (LOCAL_LOGV) Log.v("BusLocations", "bus id: " + b.getID() + ", bus route: " + b.getRoute() + " vs route: " + r.getID());
-            Boolean ShowStop = Boolean.FALSE;
-            if (bounds.contains(b.getLocation())) {
-                ShowStop = Boolean.TRUE;
-            }
-            if ((b == startStop) || (b == endStop)) {
-                ShowStop = Boolean.FALSE;
-            }
-
-            if (ShowStop) {
-                if (!Stop2Mark.containsKey(b.getID())) {
-                    Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
-                            .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f)
-                            .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop))));
-
-                    Stop2Mark.put(b.getID(), mMarker);
+            for (Stop b : sharedManager.getStops()) {
+                //if (LOCAL_LOGV) Log.v("BusLocations", "bus id: " + b.getID() + ", bus route: " + b.getRoute() + " vs route: " + r.getID());
+                Boolean ShowStop = Boolean.FALSE;
+                if (bounds.contains(b.getLocation())&&(right-left<0.05)) {
+                    ShowStop = Boolean.TRUE;
                 }
-            } else {
-                if (!Stop2Mark.containsKey(b.getID())) {
+                if ((b == startStop) || (b == endStop)) {
+                    ShowStop = Boolean.FALSE;
+                }
 
-                } else {
-                    Marker mMarker = Stop2Mark.get(b.getID());
-                    if (mMarker != null) {
-                        mMarker.remove();
-                        Stop2Mark.remove(b.getID());
+
+                if (ShowStop) {
+                    if (!Stop2Mark.containsKey(b.getID())) {
+                        Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
+                                .position(b.getLocation()).title(b.getName()).anchor(0.5f, 0.5f)
+                                .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop))));
+
+                        Stop2Mark.put(b.getID(), mMarker);
                     }
+                } else {
+                    if (!Stop2Mark.containsKey(b.getID())) {
+
+                    } else {
+                        Marker mMarker = Stop2Mark.get(b.getID());
+                        if (mMarker != null) {
+                            mMarker.remove();
+                            Stop2Mark.remove(b.getID());
+                        }
+                    }
+
                 }
-
             }
-        }
-        if (startStop != null){
-            Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
-                .position(startStop.getLocation()).title(startStop.getName()).anchor(0.5f, 0.5f)
-                .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
-            Stop2Mark.put(startStop.getID(), mMarker);
-        }
-        if (endStop != null){
-            Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
-                .position(endStop.getLocation()).title(endStop.getName()).anchor(0.5f, 0.5f)
-                .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
-            Stop2Mark.put(endStop.getID(), mMarker);
-        }
-
+            if (startStop != null) {
+                Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
+                        .position(startStop.getLocation()).title(startStop.getName()).anchor(0.5f, 0.5f)
+                        .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
+                Stop2Mark.put(startStop.getID(), mMarker);
+            }
+            if (endStop != null) {
+                Marker mMarker = mMap.addMarker(new MarkerOptions()      // Adds a balloon for every stop to the map.
+                        .position(endStop.getLocation()).title(endStop.getName()).anchor(0.5f, 0.5f)
+                        .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
+                Stop2Mark.put(endStop.getID(), mMarker);
+            }
 
     }
 

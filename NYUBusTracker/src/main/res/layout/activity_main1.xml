@@ -50,24 +50,68 @@
         </LinearLayout>
         <LinearLayout android:gravity="center_vertical" android:visibility="gone" android:id="@+id/form_search" android:layout_width="fill_parent" android:layout_height="fill_parent"
             android:orientation="vertical">
-            <EditText android:id="@+id/inputSearch"
+            <LinearLayout
+                android:id="@+id/start_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/start"
+                    android:textStyle="bold"/>
+
+            <EditText android:id="@+id/SearchStart"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:ems="10"
-                android:hint="Search products.."
+                android:hint="Выберите остановку"
                 android:inputType="textVisiblePassword">
-            <requestFocus />
+           <!-- <requestFocus />
+           -->
             </EditText>
+            </LinearLayout>
 
             <!-- List View -->
             <ListView
                 android:id="@+id/start_stop1"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/end_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/end"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/end"
+                    android:textStyle="bold"/>
+
+            <EditText android:id="@+id/SearchEnd"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Выберите остановку"
+                android:inputType="textVisiblePassword">
+            </EditText>
+            </LinearLayout>
+
+            <!-- List View -->
+            <ListView
+                android:id="@+id/end_stop1"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
         </LinearLayout>
 
-        <LinearLayout android:orientation="vertical" android:id="@+id/main_layout" android:layout_width="fill_parent" android:layout_height="fill_parent">
-            <RelativeLayout android:id="@+id/map_layout" android:layout_width="fill_parent" android:layout_height="0.0dip" android:layout_weight="1.0">
+        <LinearLayout android:orientation="horizontal" android:id="@+id/main_layout" android:layout_width="fill_parent" android:layout_height="fill_parent">
+
+            <RelativeLayout android:id="@+id/map_layout" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_weight="1.0">
                 <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="fill_parent">
                     <fragment android:id="@+id/map"
                         android:name="com.google.android.gms.maps.MapFragment"
@@ -78,19 +122,84 @@
                         tools:layout="@layout/text_bubble" />
                 </LinearLayout>
 
-                <View android:background="@color/map_header_shadow" android:layout_width="fill_parent" android:layout_height="1.0dip" />
+                <View android:background="@color/map_header_shadow" android:layout_width="fill_parent" android:layout_height="0dip"
+                    android:visibility="gone" />
 
-                <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true">
-                    <LinearLayout android:orientation="vertical" android:id="@+id/footer_layout" android:background="@android:color/transparent" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="0.0">
-                        <View android:id="@+id/footer_shadow" android:background="@color/map_header_shadow" android:layout_width="fill_parent" android:layout_height="1.0dip" android:layout_alignParentBottom="true" />
-                        <LinearLayout android:orientation="vertical" android:id="@+id/stop_layout" android:background="@android:color/white" android:layout_width="fill_parent" android:layout_height="wrap_content"
-                            android:visibility="gone">
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:id="@+id/left_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:background="@android:color/transparent"
+                    android:layout_alignParentLeft="true">
+
+                    <TextView android:textColor="@android:color/holo_green_dark"
+                        android:id="@+id/left_layout_title"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textStyle="bold" />
+                    <TextView android:textColor="@android:color/holo_green_dark" android:lines="20"
+                        android:id="@+id/left_layout_text"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:id="@+id/right_layout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="fill_parent"
+                    android:background="@android:color/transparent"
+                    android:layout_alignParentRight="true"
+                    android:textAlignment="viewEnd">
+
+                    <TextView android:textColor="@android:color/holo_blue_dark"
+                        android:id="@+id/right_layout_title"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:maxWidth="150dp"
+                        android:textSize="14sp" />
+                    <TextView android:textColor="@android:color/holo_blue_dark" android:lines="20"
+                        android:id="@+id/right_layout_text"
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textAlignment="viewEnd"
+                        android:maxWidth="150dp" />
+
+                </LinearLayout>
+
+
+                <LinearLayout android:orientation="vertical"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true">
+
+                    <LinearLayout android:orientation="vertical"
+                        android:id="@+id/footer_layout"
+                        android:background="@android:color/transparent"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.0">
+
+                        <View android:id="@+id/footer_shadow"
+                            android:background="@color/map_header_shadow"
+                            android:layout_width="fill_parent"
+                            android:layout_height="0dip"
+                            android:layout_alignParentBottom="true"
+                            android:visibility="gone" />
+
+                        <LinearLayout android:orientation="vertical" android:id="@+id/stop_layout"
+                            android:layout_width="fill_parent" android:layout_height="wrap_content"
+                            android:visibility="visible">
                             <ScrollView android:id="@+id/stop_scroll_view" android:layout_width="fill_parent" android:layout_height="wrap_content" android:fillViewport="true" android:isScrollContainer="false">
                                 <LinearLayout android:orientation="vertical" android:paddingLeft="18.0dip" android:paddingTop="10.0dip" android:paddingRight="18.0dip" android:paddingBottom="10.0dip" android:layout_width="fill_parent" android:layout_height="fill_parent">
-                                    <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginBottom="5.0dip">
+                                    <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
                                         <ImageView android:layout_gravity="center_vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="6.0dip" android:src="@drawable/ic_action_place" android:contentDescription="@null" />
-                                        <TextView android:textSize="18.0sp" android:textColor="@android:color/black" android:layout_gravity="center" android:id="@+id/stop_name" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="10.0" />
-                                        <ImageButton android:layout_gravity="right|center" android:background="@android:color/transparent" android:layout_width="23.0dip" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:src="@drawable/ic_action_warning" android:scaleType="fitEnd" android:minWidth="23.0dip" android:layout_weight="1.0"  android:contentDescription="@null" />
+                                        <TextView android:textSize="14.0sp" android:textColor="@android:color/holo_green_dark" android:layout_gravity="center" android:id="@+id/stop_name" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="10.0"
+                                            android:text="stopn"
+                                            android:singleLine="true" />
+                                        <ImageButton android:layout_gravity="right|center" android:background="@android:color/transparent" android:layout_width="23.0dip" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:src="@drawable/ic_action_warning" android:scaleType="fitEnd" android:minWidth="23.0dip" android:layout_weight="1.0"  android:contentDescription="@null"
+                                            android:visibility="gone"
+                                            android:adjustViewBounds="true" />
                                     </LinearLayout>
                                     <RelativeLayout android:layout_width="fill_parent" android:layout_height="wrap_content">
                                         <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="wrap_content">
@@ -108,14 +217,15 @@
                                 android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginBottom="0dp">
                                 <ImageView android:layout_gravity="center_vertical" android:id="@+id/transport_type" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="5.0dip" android:src="@drawable/ic_action_directions" android:contentDescription="@null" />
                                 <TextView android:textSize="22.0sp" android:textColor="@android:color/black" android:layout_gravity="center_vertical" android:id="@+id/transport_type_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="5.0dip" />
-                                <TextView android:textSize="22.0sp" android:textColor="@android:color/black" android:layout_gravity="center_vertical" android:id="@+id/transport_name" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                                <TextView android:textSize="16.0sp" android:textColor="@android:color/holo_red_light" android:layout_gravity="center_vertical" android:id="@+id/transport_name" android:layout_width="wrap_content" android:layout_height="wrap_content" />
                                 <View android:layout_width="0.0dip" android:layout_height="0.0dip" android:layout_weight="1.0" />
                                 <ImageButton android:layout_gravity="right|center" android:background="@android:color/transparent" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginRight="10.0dip" android:src="@drawable/ic_action_warning" android:scaleType="fitEnd" android:layout_weight="0.0" android:contentDescription="@null"
                                     android:visibility="gone" />
                             </LinearLayout>
                             <LinearLayout android:orientation="horizontal" android:paddingRight="10.0dip" android:layout_width="fill_parent" android:layout_height="wrap_content"
                                 android:visibility="gone">
-                                <TextView android:textColor="@color/mini_card_gray_text" android:id="@+id/terminal_stations" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+                                <TextView android:textColor="@color/mini_card_gray_text" android:id="@+id/terminal_stations" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                                    android:text="stat" />
                             </LinearLayout>
                         </LinearLayout>
                         <TextView android:textSize="12.0sp" android:textColor="@android:color/black" android:orientation="vertical" android:id="@+id/footer_text" android:background="@android:color/transparent" android:layout_width="fill_parent" android:layout_height="fill_parent" android:layout_marginLeft="18.0dip" android:layout_marginTop="0dp" android:layout_marginBottom="0dp" />

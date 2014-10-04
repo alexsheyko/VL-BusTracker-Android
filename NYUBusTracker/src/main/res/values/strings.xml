@@ -3,9 +3,9 @@
 
     <string name="app_name">VL BUS</string>
     <string name="call_safe_ride">Tap to call Safe Ride</string>
-    <string name="start">Start:</string>
+    <string name="start">Начало:</string>
     <string name="default_start">Click to set start stop</string>
-    <string name="end">End:</string>
+    <string name="end">Конец:</string>
     <string name="default_end">Click to set end stop</string>
     <string name="unable_to_connect">Unable to connect to the network.</string>
     <string name="downloading">Downloading Data</string>
@@ -59,8 +59,6 @@
     <string name="bad_data_dialog_title">За рулём стажёр</string>
     <string name="bus_transport_text">Автобус</string>
     <string name="cancel_button_text">Отмена</string>
-    <string name="com.crashlytics.android.build_id">c5b5d5d8-7fdd-49bc-8d2e-54a2051617cb</string>
-    <string name="config_url">http://http.mob.maps.yandex.net/transport/config/1.x/</string>
     <string name="data_feedback_chooser_title">Отправить в Яндекс</string>
     <string name="data_feedback_email">datafeedback@yandex-team.ru</string>
     <string name="data_feedback_subject">Яндекс.Автобусы</string>
@@ -84,7 +82,6 @@
     <string name="mapkit_upload_brunch">${upload_brunch}</string>
     <string name="mapkit_version_app">${version.app}</string>
     <string name="mapkit_version_number">${version.number}</string>
-    <string name="masstransit_base_url">http://http.mob.maps.yandex.net/masstransit/masstransit/1.x/</string>
     <string name="masstransit_url">trajectories</string>
     <string name="minibus_transport_text">Маршрутное такси</string>
     <string name="no_button_text">Нет</string>

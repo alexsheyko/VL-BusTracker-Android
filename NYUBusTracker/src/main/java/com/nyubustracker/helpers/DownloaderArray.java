@@ -25,7 +25,7 @@ import java.net.URLEncoder;
 
 public class DownloaderArray extends AsyncTask<String, Void, JSONArray> {
     final DownloaderHelper helper;
-    public static final String CREATED_FILES_DIR = "NYUCachedFiles";
+    public static final String CREATED_FILES_DIR = "VLBusCachedFiles";
     static Context context;
 
     public static Context getContext() {
