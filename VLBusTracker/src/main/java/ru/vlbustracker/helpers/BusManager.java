@@ -21,25 +21,15 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public final class BusManager {
-    public static final String TAG_DATA = "data";
     public static final String TAG_STOP = "stops";
-    public static final String TAG_LONG_NAME = "long_name";
-    public static final String TAG_LOCATION = "location";
-    public static final String TAG_LAT = "lat";
-    public static final String TAG_LNG = "lng";
-    public static final String TAG_HEADING = "heading";
-    public static final String TAG_STOP_NAME = "name";
-    public static final String TAG_STOP_ID = "stop_id";
     public static final String TAG_ROUTES = "routes";
-    public static final String TAG_ROUTE_ID = "route_id";
-    public static final String TAG_VEHICLE_ID = "vehicle_id";
-    public static final String TAG_SEGMENTS = "segments";
-    public static final String TAG_STOPS = "stops";
     public static final String TAG_OTHER = "Other";
     private static final String TAG_ROUTE = "route";
+    /*
     private static final String TAG_WEEKDAY = "Weekday";
     private static final String TAG_FRIDAY = "Friday";
     private static final String TAG_WEEKEND = "Weekend";
+    */
     private static BusManager sharedBusManager = null;      // Singleton instance.
     private static ArrayList<Stop> stops = null;            // Hold all known stops.
     private static ArrayList<Route> routes = null;
@@ -184,6 +174,7 @@ public final class BusManager {
     }
 
     private static void getAllTimes(Stop s, Route r, JSONObject routeTimes) throws JSONException {
+        /*
         getTimes(routeTimes, TAG_WEEKDAY, s, Time.TimeOfWeek.Weekday);
         getTimes(routeTimes, TAG_FRIDAY, s, Time.TimeOfWeek.Friday);
         getTimes(routeTimes, TAG_WEEKEND, s, Time.TimeOfWeek.Weekend);
@@ -194,6 +185,7 @@ public final class BusManager {
             s.setOtherRoute(route.substring(route.indexOf("Route ") + "Route ".length()));
             r.setOtherName(route.substring(route.indexOf("Route ") + "Route ".length()));
         }
+        */
 
     }
 
@@ -240,6 +232,24 @@ public final class BusManager {
 
     ArrayList<Route> getRoutes() {
         return routes;
+    }
+
+    public ArrayList<Route> getRouteList(Stop stop1,Stop stop2) {
+
+        ArrayList<Route> result = new ArrayList<Route>();
+
+        if (stop1!=null){
+            for (Route r : stop1.getRoutesTo(stop2)) {
+                result.add(r);
+            }
+        }else { //all route
+            for (Route r : getRoutes()) {
+                result.add(r);
+            }
+        }
+
+        if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Found " + result.size() + " route.");
+        return result;
     }
 
     public boolean isNotDuringSafeRide() {

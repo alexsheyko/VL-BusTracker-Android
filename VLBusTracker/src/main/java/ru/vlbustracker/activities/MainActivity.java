@@ -36,11 +36,13 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
@@ -68,6 +70,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import ru.vlbustracker.VLBusTrackerApplication;
 import ru.vlbustracker.R;
+import ru.vlbustracker.adapters.RouteAdapter;
 import ru.vlbustracker.adapters.StopAdapter;
 import ru.vlbustracker.adapters.TimeAdapter;
 import ru.vlbustracker.helpers.AggregateDownloaderHelper;
@@ -133,6 +136,7 @@ public class MainActivity extends Activity {
     double onStartTime;
     private Stop startStop;     // Stop object to keep track of the start location of the desired route.
     private Stop endStop;       // Keep track of the desired end location.
+    private Route routeSelect;       // Keep track of the desired end location.
     private static List<Route> routesBetweenStartAndEnd;        // List of all routes between start and end.
     private HashMap<String, Boolean> clickableMapMarkers;   // Hash of all markers which are clickable (so we don't zoom in on buses).
     private HashMap<String, Marker> Bus2Mark;   //
@@ -161,6 +165,7 @@ public class MainActivity extends Activity {
     private ListView lv;
     StopAdapter adapter_start;
     StopAdapter adapter_end;
+    RouteAdapter adapter_route;
 
     // Search EditText
     EditText inputSearch;
@@ -377,12 +382,12 @@ public class MainActivity extends Activity {
         if (mDrawerToggle != null && mDrawerToggle.onOptionsItemSelected(item))
             return true;
 
-        switch (item.getItemId()) {
+        switch (item.getItemId()) {//UP-RIGHT MAIN MENU
             case R.id.action_search:
                 openSearch();
                 return true;
             case R.id.action_settings:
-                //openSettings();
+                cleanEstiamate();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -896,6 +901,46 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void setRoute(Route route) {
+        if (route == null) {
+            //printStop();
+            routeSelect = null;
+            //timesBetweenStartAndEnd = null;
+            //setNextBusTime();    // Don't set the next bus if we don't have a valid route.
+            //updateMapWithNewStartOrEnd();
+            //return;
+        }
+        routeSelect = route;
+        setNextBusTime();    // Don't set the next bus if we don't have a valid route.
+        updateMapWithNewStartOrEnd();
+
+        /*
+        List<Route> routes = startStop.getRoutesTo(stop);
+        if (routes != null && routes.size() > 0 && stop != startStop) {
+            endStop = stop;
+            printStop();
+            if (startStop != null) {
+                setNextBusTime();    // Don't set the next bus if we don't have a valid route.
+                updateMapWithNewStartOrEnd();
+            }
+        }
+        else {
+            ArrayList<Stop> connected = BusManager.getBusManager().getConnectedStops(startStop);
+            if (connected.size() == 1) {
+                displayStopError();
+            }
+            else {
+                int stopIndex = 0;
+                while (connected.size() > stopIndex && !checkStop(connected.get(stopIndex))) {
+                    stopIndex++;
+                }
+                if (stopIndex < connected.size()) setEndStop(connected.get(stopIndex));
+                //else downloadEverything(true);
+            }
+        }
+        */
+    }
+
     private void setEndStop(Stop stop) {
         if (stop == null) {
             //((TextView) findViewById(R.id.end_stop)).setText(getString(R.string.default_end));
@@ -1015,8 +1060,12 @@ public class MainActivity extends Activity {
         endStop = newStartAndEnd[1];
         routesBetweenStartAndEnd = startStop.getRoutesTo(endStop);
         String Str="";
-        for (Route r : routesBetweenStartAndEnd) {
-            Str = Str + r.getLongName() +",";
+        if (routeSelect!=null){
+            Str = Str + routeSelect.getLongName() +"";
+        }else{
+            for (Route r : routesBetweenStartAndEnd) {
+                Str = Str + r.getLongName() +",";
+            }
         }
         printRoutes(Str);
         //updateNextTimeSwitcher(Str);
@@ -1161,6 +1210,41 @@ public class MainActivity extends Activity {
     }
 
     @SuppressWarnings("UnusedParameters")
+    public void createRouteDialog(View view) {
+        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "CreateRouteDialog.");
+
+        // Get all stops connected to the start stop.
+        //routesBetweenStartAndEnd = startStop.getRoutesTo(endStop);
+
+        final ArrayList<Route> aRoute =  BusManager.getBusManager().getRouteList(startStop,endStop);
+
+        if (aRoute.size() > 0) {
+
+            //ListView listView = new ListView(this);
+            ListView listView = (ListView) findViewById(R.id.route_1);
+            adapter_route = new RouteAdapter(getApplicationContext(), aRoute, new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Route r = (Route) view.getTag();
+                    //if (s.getID()==MainActivity.STOP_ID_ANY) {
+                    //    s = null;
+                    //    endStop = null;
+                    //}
+                    closeSearch();
+                    setRoute(r);    // Actually set the start stop.
+                    //dialog.dismiss();
+                }
+            }, cbListener);
+
+            listView.setAdapter(adapter_route);
+
+        }
+        else if (startStop != null) {
+            displayStopError();
+        }
+    }
+
+    @SuppressWarnings("UnusedParameters")
     public void createEndDialog(View view) {
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "CreateEndDialog.");
         // Get all stops connected to the start stop.
@@ -1296,15 +1380,10 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
-                                          int arg3) {
-                // TODO Auto-generated method stub
-
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,int arg3) {
             }
-
             @Override
             public void afterTextChanged(Editable arg0) {
-                // TODO Auto-generated method stub
             }
         });
         inputSearch.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -1333,15 +1412,10 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
-                                          int arg3) {
-                // TODO Auto-generated method stub
-
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,int arg3) {
             }
-
             @Override
             public void afterTextChanged(Editable arg0) {
-                // TODO Auto-generated method stub
             }
         });
         inputSearch.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -1357,9 +1431,72 @@ public class MainActivity extends Activity {
                 }
             }
         });
+        //************** ROUTE search
+        inputSearch = (EditText) findViewById(R.id.SearchRoute);
+        inputSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
+                if (MainActivity.this.adapter_route!=null)
+                    MainActivity.this.adapter_route.getFilter().filter(cs);
+            }
 
+            @Override
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,int arg3) {
+            }
+            @Override
+            public void afterTextChanged(Editable arg0) {
+            }
+        });
+        inputSearch.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if(hasFocus){
+                    findViewById(R.id.route_1).setVisibility(View.VISIBLE);
+                }else {
+                    findViewById(R.id.route_1).setVisibility(View.GONE);
+
+                }
+            }
+        });
+
+
+        //********* Hide keybord
+        setupUI(findViewById(R.id.form_search));
 
     }
+
+    public static void hideSoftKeyboard(Activity activity) {
+        InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+    }
+
+    public void setupUI(View view) {
+
+        //Set up touch listener for non-text box views to hide keyboard.
+        if(!(view instanceof EditText)) {
+
+            view.setOnTouchListener(new View.OnTouchListener() {
+
+                public boolean onTouch(View v, MotionEvent event) {
+                    hideSoftKeyboard(MainActivity.this);
+                    return false;
+                }
+
+            });
+        }
+
+        //If a layout container, iterate over children and seed recursion.
+        if (view instanceof ViewGroup) {
+
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+
+                View innerView = ((ViewGroup) view).getChildAt(i);
+
+                setupUI(innerView);
+            }
+        }
+    }
+
     public void closeSearch() {
         //if stop load
         findViewById(R.id.form_search).setVisibility(View.GONE);
@@ -1376,6 +1513,7 @@ public class MainActivity extends Activity {
 
         createStartDialog(null);
         createEndDialog(null);
+        createRouteDialog(null);
 
         inputSearch = (EditText) findViewById(R.id.SearchStart);
         if (startStop!=null){
@@ -1387,6 +1525,13 @@ public class MainActivity extends Activity {
         inputSearch = (EditText) findViewById(R.id.SearchEnd);
         if (endStop!=null){
             inputSearch.setText(endStop.getName());
+        }else{
+            inputSearch.setText("");
+        }
+
+        inputSearch = (EditText) findViewById(R.id.SearchRoute);
+        if (routeSelect!=null){
+            inputSearch.setText(routeSelect.getLongName());
         }else{
             inputSearch.setText("");
         }
@@ -1406,6 +1551,12 @@ public class MainActivity extends Activity {
         dialog.show();
 */
     }
+
+    public void cleanEstiamate(){
+        busIdEstimate = null;
+        stopIdEstimate = null;
+    }
+
 
     @SuppressWarnings("UnusedParameters")
     public void createInfoDialog(View view) {
@@ -1479,8 +1630,6 @@ public class MainActivity extends Activity {
 
         Long t= System.currentTimeMillis();
 
-
-
         BusManager sharedManager = BusManager.getBusManager();
         if (sharedManager.getStops().size()>1){
             //stops load ok
@@ -1501,22 +1650,33 @@ public class MainActivity extends Activity {
         st = st +"/"+ Double.toString(right-left);
         ((TextView) findViewById(R.id.footer_text)).setText(st+"/"+t);
 
+        //********** LEFT   ROUTE estiamte
         String str_times="";
         if ((stopIdEstimate!=null)&&(stopIdEstimate.length()>0)){
             Stop stopEst = sharedManager.getStopByID(stopIdEstimate);
 
             if (stopEst!=null){
                 for (Time tim : stopEst.getTimes()){
-                    str_times=str_times+" " + sharedManager.getRouteByID(tim.getRoute()) + ":" + tim.getTimeAsString() + "\n";
+                    Route route = sharedManager.getRouteByID(tim.getRoute());
+                    if (route!=null){
+                        String name = route.getLongName();
+                        if ((name!=null)&&(name.length()>0)){
+                            if (name.length()==1) name = name+"  ";
+                            if (name.length()==2) name = name+" ";
+                        }
+                        str_times=str_times+" " + name + ":" + tim.getTimeAsString() + "\n";
+                    }
                 }
                 if (stopEst.notExpireTime()){
                     ((TextView) findViewById(R.id.left_layout_title)).setText(stopEst.getName());
                 }
-
             }
+        }else{
+            ((TextView) findViewById(R.id.left_layout_title)).setText("");
         }
         ((TextView) findViewById(R.id.left_layout_text)).setText(str_times);
 
+        //********** RIGHT   BUS estiamte
         str_times="";
         if ((busIdEstimate!=null)&&(busIdEstimate.length()>0)){
             Bus busEst = sharedManager.getBus(busIdEstimate);
@@ -1542,25 +1702,43 @@ public class MainActivity extends Activity {
                 }
 
             }
+        }else{
+            ((TextView) findViewById(R.id.right_layout_title)).setText("");
         }
         ((TextView) findViewById(R.id.right_layout_text)).setText(str_times);
 
-
-
+        // *************** BUS ON MAP
+        Integer countBus = 0;
         for (Bus b : sharedManager.getBuses()) {
             //if (LOCAL_LOGV) Log.v("BusLocations", "bus id: " + b.getID() + ", bus route: " + b.getRoute() + " vs route: " + r.getID());
-            //if (b.getRoute().equals(r.getID())) {
             Boolean ShowBus = Boolean.FALSE;
-            if(bounds.contains(b.getLocation())) {
-                if (routesBetweenStartAndEnd==null){
-                    ShowBus = Boolean.TRUE;
-                }else {
-                    for (Route r : routesBetweenStartAndEnd) {
-                        if (b.getRoute().equals(r.getID())) {
-                            ShowBus = Boolean.TRUE;
-                        }
+
+            // list route from STOP start-end
+            if (routesBetweenStartAndEnd==null){
+                ShowBus = Boolean.TRUE;
+            }else {
+                for (Route r : routesBetweenStartAndEnd) {
+                    if (b.getRoute().equals(r.getID())) {
+                        ShowBus = Boolean.TRUE;
                     }
                 }
+            }
+            // only Selected route
+            if (routeSelect!=null) {
+                if (b.getRoute().equals(routeSelect.getID())) {
+                    ShowBus = Boolean.TRUE;
+                } else {
+                    ShowBus = Boolean.FALSE;
+                }
+            }
+            if (ShowBus){
+                countBus++;
+            }
+
+            if(bounds.contains(b.getLocation())) {
+                //sho is show
+            }else{ //not in maps
+                ShowBus = Boolean.FALSE;
             }
 
             if (ShowBus) {
@@ -1600,6 +1778,8 @@ public class MainActivity extends Activity {
                 }
             }
         }//for bus
+        getActionBar().setTitle(mTitle +"  :"+Integer.toString(countBus));
+
 
     }
 
@@ -1656,6 +1836,45 @@ public class MainActivity extends Activity {
                         .icon(BitmapDescriptorFactory.fromBitmap(BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_map_stop_active))));
                 Stop2Mark.put(endStop.getID(), mMarker);
             }
+
+    }
+
+
+    @SuppressWarnings("UnusedParameters")
+    public void cleanSearchEnd(View view){
+        inputSearch = (EditText) findViewById(R.id.SearchEnd);
+        inputSearch.setText("");
+        endStop = null;
+        setEndStop(null);
+
+}
+
+    @SuppressWarnings("UnusedParameters")
+    public void cleanSearchStart(View view){
+        inputSearch = (EditText) findViewById(R.id.SearchStart);
+        inputSearch.setText("");
+        startStop = null;
+        setStartStop(null);    // Actually set the start stop.
+    }
+
+    @SuppressWarnings("UnusedParameters")
+    public void cleanSearchRoute(View view){
+        inputSearch = (EditText) findViewById(R.id.SearchRoute);
+        inputSearch.setText("");
+        routeSelect = null;
+        setRoute(null);
+    }
+
+    @SuppressWarnings("UnusedParameters")
+    public void centerMapStop(View view){
+        if((startStop!=null)&&(mMap!=null)){
+            CameraUpdate center=
+                    CameraUpdateFactory.newLatLng(startStop.getLocation());
+            CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
+
+            mMap.moveCamera(center);
+            mMap.animateCamera(zoom);
+        }
 
     }
 

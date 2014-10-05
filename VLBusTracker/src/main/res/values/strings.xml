@@ -2,9 +2,11 @@
 <resources>
 
     <string name="app_name">VL BUS</string>
-    <string name="start">Начало:</string>
-    <string name="end">Конец:</string>
+    <string name="start">"Начало "</string>
+    <string   name="end">"Конец  "</string>
+    <string name="route">"Маршрут"</string>
     <string name="select_stop">Выберите остановку</string>
+    <string name="select_route">Выберите маршрут</string>
     <string name="information">VL BUS\nАвтобусы владивостока.\n Клиент для сайта map.vl.ru</string>
     <string name="website">http://map.vl.ru/traffic/buses</string>
     <string name="programmed_by">Сделано by:</string>
@@ -13,7 +15,6 @@
     <string name="github_link">Перейти на GitHub</string>
     <string name="thanks">Благодарности всем</string>
     <string name="unable_to_connect">Нет соединения с сетью.</string>
-    <string name="route">"Route "</string>
     <string name="no_stops_available">Извените. Остановки не доступны.</string>
 
     <!--
