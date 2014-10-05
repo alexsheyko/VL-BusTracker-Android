@@ -191,6 +191,7 @@ public class MainActivity extends Activity {
         int retCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
         if (retCode != ConnectionResult.SUCCESS) {
             GooglePlayServicesUtil.getErrorDialog(retCode, this, 1).show();
+            return;
         }
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
