@@ -483,7 +483,7 @@ public class MainActivity extends Activity {
         // По такому нажатию мы будем закрывать drawer.
         mDrawerList.setOnItemClickListener(new OnItemClickListener());
 
-        //((BusTrackerApplication) getApplication()).getTracker();
+        ((VLBusTrackerApplication) getApplication()).getTracker();
         Bus2Mark = new HashMap<String, Marker>();
         Stop2Mark = new HashMap<String, Marker>();
         oncePreferences = getSharedPreferences(RUN_ONCE_PREF, MODE_PRIVATE);

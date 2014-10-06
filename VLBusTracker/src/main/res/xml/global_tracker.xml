@@ -12,5 +12,5 @@
     <bool name="ga_dryRun">false</bool>
 
     <!-- The screen names that will appear in reports -->
-    <string name="com.nyubustracker.activities.MainActivity">Main Activity</string>
+    <string name="ru.vlbustracker.activities.MainActivity">Main Activity</string>
 </resources>
