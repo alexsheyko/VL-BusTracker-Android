@@ -112,7 +112,7 @@ import java.util.TimerTask;
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 public class MainActivity extends Activity {
-    public static final boolean LOCAL_LOGV = false;
+    public static final boolean LOCAL_LOGV = true;
     private static final String RUN_ONCE_PREF = "runOnce";
     private static final String STOP_PREF = "stops";
     private static final String START_STOP_PREF = "startStop";
@@ -483,7 +483,12 @@ public class MainActivity extends Activity {
         // По такому нажатию мы будем закрывать drawer.
         mDrawerList.setOnItemClickListener(new OnItemClickListener());
 
+        //android.app.Application Appl = (VLBusTrackerApplication) getApplication();
         ((VLBusTrackerApplication) getApplication()).getTracker();
+
+        //Tracker t = ((VLBusTrackerApplication) getActivity().getApplication()).getTracker(
+        //        TrackerName.APP_TRACKER);
+
         Bus2Mark = new HashMap<String, Marker>();
         Stop2Mark = new HashMap<String, Marker>();
         oncePreferences = getSharedPreferences(RUN_ONCE_PREF, MODE_PRIVATE);

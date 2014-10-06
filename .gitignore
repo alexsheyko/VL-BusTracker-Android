@@ -5,7 +5,7 @@
 *.ipr
 *.iws
 .idea/
-VLBusTracker/src/main/AndroidManifest.xml
+#VLBusTracker/src/main/AndroidManifest.xml
 VLBusTracker/src/main/res/values/analytics.xml
 VLBusTracker/src/debug/res/values/analytics.xml
 build
