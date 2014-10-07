@@ -68,6 +68,7 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 
 import ru.vlbustracker.VLBusTrackerApplication;
@@ -218,6 +219,31 @@ public class MainActivity extends Activity {
                 mMap.setOnCameraChangeListener(mClusterManager);
                 mMap.setOnMarkerClickListener(mClusterManager);
                 mClusterManager.setRenderer(new BusClusterRenderer(this,mMap, mClusterManager));
+                mClusterManager.setOnClusterClickListener(new ClusterManager.OnClusterClickListener<BusItem>() {
+                    @Override
+                    public boolean onClusterClick(Cluster<BusItem> busItemCluster) {
+
+                        return false;
+                    }
+                });
+                mClusterManager.setOnClusterItemClickListener(new ClusterManager.OnClusterItemClickListener<BusItem>() {
+                    @Override
+                    public boolean onClusterItemClick(BusItem busItem) {
+
+                        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Set bus Estimate " + busItem.Bus.getID() + "");
+                        busIdEstimate = busItem.Bus.getID();
+                        ((TextView) findViewById(R.id.right_layout_title)).setText("Загружаем");
+
+                        return false;
+                    }
+                });
+                mClusterManager.setOnClusterItemInfoWindowClickListener(new ClusterManager.OnClusterItemInfoWindowClickListener<BusItem>() {
+                    @Override
+                    public void onClusterItemInfoWindowClick(BusItem busItem) {
+
+                    }
+                });
+
 /*
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
@@ -384,6 +410,7 @@ public class MainActivity extends Activity {
         // Else, we have nothing to do, since not all downloads are finished.
     }
 
+    // ******************  MAIN UP MENU
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu items for use in the action bar
@@ -414,6 +441,7 @@ public class MainActivity extends Activity {
         */
         //return super.onOptionsItemSelected(item);
     }
+
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {

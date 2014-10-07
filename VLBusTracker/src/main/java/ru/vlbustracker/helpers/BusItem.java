@@ -18,16 +18,16 @@ import ru.vlbustracker.models.Bus;
 
 public class BusItem implements ClusterItem {
     //private final LatLng mPosition;
-    public final Bus mBus;
+    public final Bus Bus;
 
-    public BusItem(double lat, double lng, Bus bus) {
+    public BusItem(double lat, double lng, Bus mBus) {
         //mPosition = new LatLng(lat, lng);
-        mBus = bus;
+        Bus = mBus;
     }
 
     @Override
     public LatLng getPosition() {
-        return mBus.getLocation();
+        return Bus.getLocation();
         //return mPosition;
     }
 

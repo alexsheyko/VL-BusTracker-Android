@@ -70,7 +70,7 @@ public class BusClusterRenderer extends DefaultClusterRenderer<BusItem> {
         Bitmap icon = mIconGenerator.makeIcon();
         //markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title("2");
         //.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
-        Bus b = item.mBus;
+        Bus b = item.Bus;
         markerOptions.icon(
                 BitmapDescriptorFactory.fromBitmap(
                         getIcoBus(b.getTitle(), b.getHeading(), b.isHidden()
@@ -141,4 +141,6 @@ public class BusClusterRenderer extends DefaultClusterRenderer<BusItem> {
 
         return  bm;
     }
+
 }
+
