@@ -78,6 +78,7 @@ import ru.vlbustracker.adapters.TimeAdapter;
 import ru.vlbustracker.helpers.AggregateDownloaderHelper;
 import ru.vlbustracker.helpers.BusDownloaderHelper;
 import ru.vlbustracker.helpers.BusItem;
+import ru.vlbustracker.helpers.BusClusterRenderer;
 import ru.vlbustracker.helpers.BusManager;
 import ru.vlbustracker.helpers.Downloader;
 import ru.vlbustracker.helpers.DownloaderArray;
@@ -216,6 +217,7 @@ public class MainActivity extends Activity {
                 mClusterManager = new ClusterManager<BusItem>(this, mMap);
                 mMap.setOnCameraChangeListener(mClusterManager);
                 mMap.setOnMarkerClickListener(mClusterManager);
+                mClusterManager.setRenderer(new BusClusterRenderer(this,mMap, mClusterManager));
 /*
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
@@ -672,10 +674,16 @@ public class MainActivity extends Activity {
     }
 
     void cacheStops() {
-        if (endStop != null)
+        if (endStop != null) {
             getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(END_STOP_PREF, endStop.getName()).apply();         // Creates or updates cache file.
-        if (startStop != null)
+        }else{
+            getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(END_STOP_PREF, "").apply();
+        }
+        if (startStop != null) {
             getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(START_STOP_PREF, startStop.getName()).apply();
+        }else{
+            getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(START_STOP_PREF, "").apply();
+        }
         if (routeSelect != null) {
             getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(ROUTE_PREF, routeSelect.getID()).apply();
         }else{
@@ -797,12 +805,18 @@ public class MainActivity extends Activity {
         String route = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getString(ROUTE_PREF, "");
         if( (startStop == null) && (start!=null)) {
             setStartStop(BusManager.getBusManager().getStopByName(start));
+        }else{
+            startStop=null;
         }
         if ((endStop == null) && (end!=null)) {
             setEndStop(BusManager.getBusManager().getStopByName(end));
+        }else{
+            endStop=null;
         }
         if ((routeSelect == null) && (route!=null)) {
             setRoute(BusManager.getBusManager().getRouteByID(route));
+        }else{
+            routeSelect = null;
         }
         /*
         Location l = getLocation();
@@ -1739,6 +1753,9 @@ public class MainActivity extends Activity {
         }
         ((TextView) findViewById(R.id.right_layout_text)).setText(str_times);
 
+        // cluster start
+        mClusterManager.clearItems();
+
         // *************** BUS ON MAP
         Integer countBus = 0;
         for (Bus b : sharedManager.getBuses()) {
@@ -1774,11 +1791,12 @@ public class MainActivity extends Activity {
             }
 
             // cluster start
-            mClusterManager.clearItems();
-            BusItem offsetItem = new BusItem(b.getLocation().latitude, b.getLocation().longitude);
-            mClusterManager.addItem(offsetItem);
-            ShowBus = Boolean.FALSE;
-
+            //mClusterManager.clearItems();
+            if (ShowBus) {
+                BusItem offsetItem = new BusItem(b.getLocation().latitude, b.getLocation().longitude, b);
+                mClusterManager.addItem(offsetItem);
+                ShowBus = Boolean.FALSE;
+            }
             //cluster end
 
 
