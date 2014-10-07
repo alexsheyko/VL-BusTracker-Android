@@ -275,7 +275,9 @@
                                             android:layout_height="wrap_content"
                                             android:layout_weight="10.0"
                                             android:singleLine="true"
-                                            android:textIsSelectable="true" />
+                                            android:textIsSelectable="true"
+                                            android:focusable="false"
+                                            android:onClick="centerMapStop" />
 
                                     </LinearLayout>
                                 </LinearLayout>

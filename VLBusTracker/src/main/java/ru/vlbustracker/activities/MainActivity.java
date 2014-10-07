@@ -54,7 +54,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
-import com.flurry.android.FlurryAgent;
+//import com.flurry.android.FlurryAgent;
 import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -117,6 +117,7 @@ public class MainActivity extends Activity {
     private static final String STOP_PREF = "stops";
     private static final String START_STOP_PREF = "startStop";
     private static final String END_STOP_PREF = "endStop";
+    private static final String ROUTE_PREF = "endStop";
     private static final String FIRST_TIME = "firstTime";
     public static final String REFACTOR_LOG_TAG = "refactor";
     public static final String LOG_TAG = "v_log_tag";
@@ -548,6 +549,7 @@ public class MainActivity extends Activity {
                     JSONObject argJson = new JSONObject(readSavedData(AggregateDownloaderHelper.ARG_JSON_FILE));
                     Stop.parseJSON(argJson.getJSONObject("data"));
                     Route.parseJSON(argJson.getJSONObject("data"));
+                    restoreStopCache(); // down setStartAndEndStops();
 
                     //BusManager.parseSegments(segJson);
                     //BusManager.parseVersion(verJson);
@@ -611,19 +613,19 @@ public class MainActivity extends Activity {
 
         renewBusRefreshTimer();
         createMap();
-/*
+
         if (endStop != null && startStop != null) {
-            renewTimeUntilTimer();
-            setStartAndEndStops();
+            //renewTimeUntilTimer();
+            restoreStopCache();
         }
-        */
+
     }
 
     @Override
     public void onPause() {
         super.onPause();
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "onPause!");
-        cacheStartAndEndStops();
+        cacheStops();
         if (timeUntilTimer != null) timeUntilTimer.cancel();
         if (busRefreshTimer != null) busRefreshTimer.cancel();
         if (busDownloadTimer != null) busDownloadTimer.cancel();
@@ -641,7 +643,7 @@ public class MainActivity extends Activity {
     public void onDestroy() {
         super.onDestroy();
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "onDestroy!");
-        cacheStartAndEndStops();      // Remember user's preferences across lifetimes.
+        cacheStops();      // Remember user's preferences across lifetimes.
         if (timeUntilTimer != null)
             timeUntilTimer.cancel();           // Don't need a timer anymore -- must be recreated onResume.
         if (busDownloadTimer != null) busDownloadTimer.cancel();
@@ -658,11 +660,16 @@ public class MainActivity extends Activity {
             super.onBackPressed();
     }
 
-    void cacheStartAndEndStops() {
+    void cacheStops() {
         if (endStop != null)
             getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(END_STOP_PREF, endStop.getName()).apply();         // Creates or updates cache file.
         if (startStop != null)
             getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(START_STOP_PREF, startStop.getName()).apply();
+        if (routeSelect != null) {
+            getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(ROUTE_PREF, routeSelect.getID()).apply();
+        }else{
+            getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(ROUTE_PREF, "").apply();
+        }
     }
 
     void sayBusIsOffline() {
@@ -772,12 +779,20 @@ public class MainActivity extends Activity {
         }
         return bestLocation;
     }
-/*
-    void setStartAndEndStops() {
-        String end = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getString(END_STOP_PREF, "80 Lafayette St");         // Creates or updates cache file.
-        String start = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getString(START_STOP_PREF, "715 Broadway @ Washington Square");
-        if (startStop == null) setStartStop(BusManager.getBusManager().getStopByName(start));
-        if (endStop == null) setEndStop(BusManager.getBusManager().getStopByName(end));
+
+    void restoreStopCache() {
+        String end = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getString(END_STOP_PREF, "");         // Creates or updates cache file.
+        String start = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getString(START_STOP_PREF, "");
+        String route = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getString(ROUTE_PREF, "");
+        if( (startStop == null) && (start!=null)) {
+            setStartStop(BusManager.getBusManager().getStopByName(start));
+        }
+        if ((endStop == null) && (end!=null)) {
+            setEndStop(BusManager.getBusManager().getStopByName(end));
+        }
+        if ((routeSelect == null) && (route!=null)) {
+            setRoute(BusManager.getBusManager().getRouteByID(route));
+        }
         /*
         Location l = getLocation();
         if (l != null && System.currentTimeMillis() - onStartTime < 1000) {
@@ -790,9 +805,9 @@ public class MainActivity extends Activity {
                 setStartStop(endStop);
             }
         }
-        ***
+        **/
     }
-    */
+
 
     // Clear the map of all buses and put them all back on in their new locations.
     private void updateMapWithNewBusLocations() {

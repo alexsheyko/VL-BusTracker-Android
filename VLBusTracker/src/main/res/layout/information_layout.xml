@@ -19,6 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
+        android:onClick="goToWebsite"
         android:text="@string/website"
         android:textSize="25sp"/>
 
