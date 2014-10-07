@@ -68,6 +68,8 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.clustering.ClusterManager;
+
 import ru.vlbustracker.VLBusTrackerApplication;
 import ru.vlbustracker.R;
 import ru.vlbustracker.adapters.RouteAdapter;
@@ -75,6 +77,7 @@ import ru.vlbustracker.adapters.StopAdapter;
 import ru.vlbustracker.adapters.TimeAdapter;
 import ru.vlbustracker.helpers.AggregateDownloaderHelper;
 import ru.vlbustracker.helpers.BusDownloaderHelper;
+import ru.vlbustracker.helpers.BusItem;
 import ru.vlbustracker.helpers.BusManager;
 import ru.vlbustracker.helpers.Downloader;
 import ru.vlbustracker.helpers.DownloaderArray;
@@ -167,6 +170,9 @@ public class MainActivity extends Activity {
     StopAdapter adapter_start;
     StopAdapter adapter_end;
     RouteAdapter adapter_route;
+    private ClusterManager<BusItem> mClusterManager;
+
+
 
     // Search EditText
     EditText inputSearch;
@@ -206,6 +212,11 @@ public class MainActivity extends Activity {
                 mMap.getUiSettings().setMyLocationButtonEnabled(true);
                 //mMap.setMyLocationEnabled(true);
 
+                //https://github.com/googlemaps/android-maps-utils/blob/master/demo/src/com/google/maps/android/utils/demo/ClusteringDemoActivity.java
+                mClusterManager = new ClusterManager<BusItem>(this, mMap);
+                mMap.setOnCameraChangeListener(mClusterManager);
+                mMap.setOnMarkerClickListener(mClusterManager);
+/*
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
                     public boolean onMarkerClick(Marker marker) {
@@ -263,7 +274,7 @@ public class MainActivity extends Activity {
                        showStopOnMap();
                    }
 
-                });
+                });*/
                 CameraUpdate center=
                         CameraUpdateFactory.newLatLng(BROADWAY);
                 CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
@@ -1762,8 +1773,19 @@ public class MainActivity extends Activity {
                 ShowBus = Boolean.FALSE;
             }
 
+            // cluster start
+            mClusterManager.clearItems();
+            BusItem offsetItem = new BusItem(b.getLocation().latitude, b.getLocation().longitude);
+            mClusterManager.addItem(offsetItem);
+            ShowBus = Boolean.FALSE;
+
+            //cluster end
+
+
             if (ShowBus) {
                 if(!Bus2Mark.containsKey(b.getID())) {
+
+
                     Marker mMarker = mMap.addMarker(new MarkerOptions()
                                     .position(b.getLocation())
                                     .icon(
@@ -1780,6 +1802,9 @@ public class MainActivity extends Activity {
                                     .snippet("№№: " + b.getBody())
                     );
                     Bus2Mark.put(b.getID(), mMarker);
+
+
+
                 }else{ //change pos
                     Marker mMarker = Bus2Mark.get(b.getID());
                     if (mMarker!= null){
