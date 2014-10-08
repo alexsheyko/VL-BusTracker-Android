@@ -11,24 +11,49 @@ import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
 import ru.vlbustracker.models.Bus;
+import ru.vlbustracker.models.Stop;
 
 /**
  * Created by Шейко on 07.10.14.
  */
 
 public class BusItem implements ClusterItem {
-    //private final LatLng mPosition;
+    private LatLng mPosition;
     public final Bus Bus;
+    public final Stop Stop;
+    public Integer type;
 
-    public BusItem(double lat, double lng, Bus mBus) {
+    public BusItem(Bus mBus, Stop mStop) {
         //mPosition = new LatLng(lat, lng);
-        Bus = mBus;
+        //type = 0;
+        if (mBus!=null){
+            Bus = mBus;
+            type = 1;
+            Stop = null;
+        }else {
+            if (mStop != null) {
+                Bus = null;
+                type = 2;
+                Stop = mStop;
+            }else{
+                Bus = null;
+                type = 0;
+                Stop = null;
+            }
+        }
+        mPosition = null;
+
     }
 
     @Override
     public LatLng getPosition() {
         return Bus.getLocation();
         //return mPosition;
+    }
+
+
+    public void setPosition(LatLng mPos) {
+        mPosition = mPos;
     }
 
 }

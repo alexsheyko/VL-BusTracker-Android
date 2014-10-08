@@ -27,6 +27,7 @@ import ru.vlbustracker.models.Bus;
 
 
 public class BusClusterRenderer extends DefaultClusterRenderer<BusItem> {
+    private static final boolean SHOULD_ANIMATE = false;
     private final IconGenerator mIconGenerator ;//= new IconGenerator(getApplicationContext());
     //private final IconGenerator mClusterIconGenerator;// = new IconGenerator(getApplicationContext());
     private final ImageView mImageView;
@@ -34,6 +35,7 @@ public class BusClusterRenderer extends DefaultClusterRenderer<BusItem> {
     //private final int mDimension;
     private final Context mContext;
     private final Resources mRes;
+
 
     public BusClusterRenderer(Context context, GoogleMap map,
                               ClusterManager<BusItem> clusterManager) {

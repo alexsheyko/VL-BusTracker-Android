@@ -85,6 +85,7 @@ import ru.vlbustracker.helpers.Downloader;
 import ru.vlbustracker.helpers.DownloaderArray;
 import ru.vlbustracker.helpers.DownloaderHelper;
 import ru.vlbustracker.helpers.MultipleOrientationSlidingDrawer;
+import ru.vlbustracker.helpers.Poster;
 import ru.vlbustracker.helpers.RouteDownloaderHelper;
 import ru.vlbustracker.helpers.SegmentDownloaderHelper;
 import ru.vlbustracker.helpers.StopDownloaderHelper;
@@ -118,6 +119,7 @@ import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 public class MainActivity extends Activity {
     public static final boolean LOCAL_LOGV = true;
+    public static final boolean SHOW_CLUSTER = false;
     private static final String RUN_ONCE_PREF = "runOnce";
     private static final String STOP_PREF = "stops";
     private static final String START_STOP_PREF = "startStop";
@@ -174,10 +176,8 @@ public class MainActivity extends Activity {
     RouteAdapter adapter_route;
     private ClusterManager<BusItem> mClusterManager;
 
-
-
     // Search EditText
-    EditText inputSearch;
+    //EditText inputSearch;
 
 
     static {
@@ -215,39 +215,46 @@ public class MainActivity extends Activity {
                 //mMap.setMyLocationEnabled(true);
 
                 //https://github.com/googlemaps/android-maps-utils/blob/master/demo/src/com/google/maps/android/utils/demo/ClusteringDemoActivity.java
-                mClusterManager = new ClusterManager<BusItem>(this, mMap);
-                mMap.setOnCameraChangeListener(mClusterManager);
-                mMap.setOnMarkerClickListener(mClusterManager);
-                mClusterManager.setRenderer(new BusClusterRenderer(this,mMap, mClusterManager));
-                mClusterManager.setOnClusterClickListener(new ClusterManager.OnClusterClickListener<BusItem>() {
-                    @Override
-                    public boolean onClusterClick(Cluster<BusItem> busItemCluster) {
+                if (SHOW_CLUSTER) {
+                    mClusterManager = new ClusterManager<BusItem>(this, mMap);
+                    //mMap.setOnCameraChangeListener(mClusterManager);
+                    //mMap.setOnMarkerClickListener(mClusterManager);
+                    mClusterManager.setRenderer(new BusClusterRenderer(this, mMap, mClusterManager));
+                    mClusterManager.setOnClusterClickListener(new ClusterManager.OnClusterClickListener<BusItem>() {
+                        @Override
+                        public boolean onClusterClick(Cluster<BusItem> busItemCluster) {
 
-                        return false;
-                    }
-                });
-                mClusterManager.setOnClusterItemClickListener(new ClusterManager.OnClusterItemClickListener<BusItem>() {
-                    @Override
-                    public boolean onClusterItemClick(BusItem busItem) {
+                            return false;
+                        }
+                    });
+                    mClusterManager.setOnClusterItemClickListener(new ClusterManager.OnClusterItemClickListener<BusItem>() {
+                        @Override
+                        public boolean onClusterItemClick(BusItem busItem) {
 
-                        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Set bus Estimate " + busItem.Bus.getID() + "");
-                        busIdEstimate = busItem.Bus.getID();
-                        ((TextView) findViewById(R.id.right_layout_title)).setText("Загружаем");
+                            if (LOCAL_LOGV)
+                                Log.v(REFACTOR_LOG_TAG, "Set bus Estimate " + busItem.Bus.getID() + "");
+                            busIdEstimate = busItem.Bus.getID();
+                            ((TextView) findViewById(R.id.right_layout_title)).setText("Загружаем");
 
-                        return false;
-                    }
-                });
-                mClusterManager.setOnClusterItemInfoWindowClickListener(new ClusterManager.OnClusterItemInfoWindowClickListener<BusItem>() {
-                    @Override
-                    public void onClusterItemInfoWindowClick(BusItem busItem) {
+                            return false;
+                        }
+                    });
+                    mClusterManager.setOnClusterItemInfoWindowClickListener(new ClusterManager.OnClusterItemInfoWindowClickListener<BusItem>() {
+                        @Override
+                        public void onClusterItemInfoWindowClick(BusItem busItem) {
 
-                    }
-                });
+                        }
+                    });
+                }
 
-/*
+
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
                     public boolean onMarkerClick(Marker marker) {
+                        if (SHOW_CLUSTER) {
+                            mClusterManager.onMarkerClick(marker);
+                        }
+
                         if (Stop2Mark.containsValue( marker)){
                             Iterator entries = Stop2Mark.entrySet().iterator();
                             String idmarker = marker.getId();
@@ -298,11 +305,15 @@ public class MainActivity extends Activity {
                    @Override
                     public void onCameraChange(com.google.android.gms.maps.model.CameraPosition position)
                    {
+
                        showBusOnMap();
                        showStopOnMap();
+                       if (SHOW_CLUSTER) {
+                           mClusterManager.onCameraChange(position);
+                       }
                    }
 
-                });*/
+                });
                 CameraUpdate center=
                         CameraUpdateFactory.newLatLng(BROADWAY);
                 CameraUpdate zoom=CameraUpdateFactory.zoomTo(15);
@@ -695,10 +706,15 @@ public class MainActivity extends Activity {
     public void onBackPressed() {
         //if (drawer.isOpened()) drawer.animateClose();
         //else
-        if (findViewById(R.id.form_search).getVisibility()==View.VISIBLE) {
+        if (findViewById(R.id.form_search).getVisibility() == View.VISIBLE) {
             closeSearch();
-        }else
-            super.onBackPressed();
+        } else {
+            if (findViewById(R.id.form_comment).getVisibility() == View.VISIBLE) {
+                closeComment();
+            } else {
+                super.onBackPressed();
+            }
+        }
     }
 
     void cacheStops() {
@@ -1571,11 +1587,14 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void closeComment() {
+        findViewById(R.id.form_comment).setVisibility(View.GONE);
+        findViewById(R.id.main_layout).setVisibility(View.VISIBLE);
+    }
+
     public void closeSearch() {
-        //if stop load
         findViewById(R.id.form_search).setVisibility(View.GONE);
         findViewById(R.id.main_layout).setVisibility(View.VISIBLE);
-
         //createStartDialog(null);
     }
 
@@ -1589,7 +1608,7 @@ public class MainActivity extends Activity {
         createEndDialog(null);
         createRouteDialog(null);
 
-        inputSearch = (EditText) findViewById(R.id.SearchStart);
+        EditText inputSearch = (EditText) findViewById(R.id.SearchStart);
         if (startStop!=null){
             inputSearch.setText(startStop.getName());
         }else{
@@ -1782,7 +1801,9 @@ public class MainActivity extends Activity {
         ((TextView) findViewById(R.id.right_layout_text)).setText(str_times);
 
         // cluster start
-        mClusterManager.clearItems();
+        if (SHOW_CLUSTER) {
+            mClusterManager.clearItems();
+        }
 
         // *************** BUS ON MAP
         Integer countBus = 0;
@@ -1818,12 +1839,18 @@ public class MainActivity extends Activity {
                 ShowBus = Boolean.FALSE;
             }
 
+
             // cluster start
-            //mClusterManager.clearItems();
-            if (ShowBus) {
-                BusItem offsetItem = new BusItem(b.getLocation().latitude, b.getLocation().longitude, b);
-                mClusterManager.addItem(offsetItem);
-                ShowBus = Boolean.FALSE;
+            if (SHOW_CLUSTER) {
+                if (ShowBus) {
+                    BusItem offsetItem = new BusItem(b, null);
+                    mClusterManager.addItem(offsetItem);
+                    //mClusterManager.getMarkerManager().
+                    //if (offsetItem.getPosition()!=b.getLocation()){
+                    //    offsetItem.setPosition(b.getLocation());
+                    //}
+                    ShowBus = Boolean.FALSE;
+                }
             }
             //cluster end
 
@@ -1870,6 +1897,10 @@ public class MainActivity extends Activity {
                 }
             }
         }//for bus
+        if (SHOW_CLUSTER) {
+            mClusterManager.cluster();
+        }
+
         getActionBar().setTitle(mTitle +"  :"+Integer.toString(countBus));
 
 
@@ -1934,7 +1965,7 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings("UnusedParameters")
     public void cleanSearchEnd(View view){
-        inputSearch = (EditText) findViewById(R.id.SearchEnd);
+        EditText inputSearch = (EditText) findViewById(R.id.SearchEnd);
         inputSearch.setText("");
         endStop = null;
         setEndStop(null);
@@ -1943,7 +1974,7 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings("UnusedParameters")
     public void cleanSearchStart(View view){
-        inputSearch = (EditText) findViewById(R.id.SearchStart);
+        EditText inputSearch = (EditText) findViewById(R.id.SearchStart);
         inputSearch.setText("");
         startStop = null;
         setStartStop(null);    // Actually set the start stop.
@@ -1951,7 +1982,7 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings("UnusedParameters")
     public void cleanSearchRoute(View view){
-        inputSearch = (EditText) findViewById(R.id.SearchRoute);
+        EditText inputSearch = (EditText) findViewById(R.id.SearchRoute);
         inputSearch.setText("");
         routeSelect = null;
         setRoute(null);
@@ -1968,6 +1999,41 @@ public class MainActivity extends Activity {
             mMap.animateCamera(zoom);
         }
 
+    }
+
+    @SuppressWarnings("UnusedParameters")
+    public void sendCoomment(View view) {
+        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Send comment.");
+        if (busIdEstimate!=null){
+            BusManager sharedManager = BusManager.getBusManager();
+            Bus busEst = sharedManager.getBus(busIdEstimate);
+
+            EditText inputText = (EditText) findViewById(R.id.comment_text);
+            String s = "";
+            s = s + busIdEstimate + "|";
+            s = s + busEst.getTitle() + "|";
+            s = s + busEst.getBody() + "|";
+            s = s + busEst.getRoute() + "|";
+            s = s + inputText.getText().toString();
+
+            new Poster().execute(s);
+        }
+    }
+
+
+    @SuppressWarnings("UnusedParameters")
+    public void openComments(View view){
+        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Open comment.");
+        if (busIdEstimate!=null){
+            BusManager sharedManager = BusManager.getBusManager();
+            Bus busEst = sharedManager.getBus(busIdEstimate);
+
+            findViewById(R.id.form_comment).setVisibility(View.VISIBLE);
+            findViewById(R.id.main_layout).setVisibility(View.GONE);
+
+            TextView input = (TextView) findViewById(R.id.comment_title);
+            input.setText(getString(R.string.comments)+" " + busEst.getTitle() + " №"+ busEst.getBody());
+        }
     }
 
 

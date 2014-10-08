@@ -44,6 +44,36 @@
                     android:contentDescription="@null" />
             </LinearLayout>
 
+        <LinearLayout android:id="@+id/form_comment"
+            android:gravity="center_vertical"
+            android:visibility="visible"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/comment_title"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="11"
+                android:textStyle="bold"
+                android:textSize="16.0sp"
+                android:textIsSelectable="false" />
+            <EditText
+                android:id="@+id/comment_text"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_width="fill_parent"
+                android:background="@android:color/white"
+                android:textColor="@android:color/black" />
+
+            <Button
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/send"
+                android:onClick="sendCoomment" />
+
+         </LinearLayout>
+@
         <LinearLayout android:id="@+id/form_search"
             android:gravity="center_vertical"
             android:visibility="gone"
@@ -196,8 +226,13 @@
 
                     <TextView android:textColor="@android:color/holo_green_dark"
                         android:id="@+id/left_layout_title"
-                        android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textStyle="bold" />
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:textIsSelectable="true"
+                        android:focusable="false"
+                        android:onClick="openComments"
+                        android:singleLine="true" />
                     <TextView android:textColor="@android:color/holo_green_dark" android:lines="20"
                         android:id="@+id/left_layout_text"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -219,7 +254,11 @@
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:textStyle="bold"
                         android:maxWidth="150dp"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:textIsSelectable="true"
+                        android:focusable="false"
+                        android:onClick="openComments"
+                        android:singleLine="true" />
                     <TextView android:textColor="@android:color/holo_blue_dark" android:lines="20"
                         android:id="@+id/right_layout_text"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
