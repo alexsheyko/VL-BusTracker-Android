@@ -6,6 +6,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.PolyUtil;
 import ru.vlbustracker.activities.MainActivity;
 import ru.vlbustracker.models.Bus;
+import ru.vlbustracker.models.Comment;
 import ru.vlbustracker.models.Route;
 import ru.vlbustracker.models.Stop;
 import ru.vlbustracker.models.Time;
@@ -35,6 +36,7 @@ public final class BusManager {
     private static ArrayList<Route> routes = null;
     private static ArrayList<String> hideRoutes = null;     // Routes to not show the user.
     private static ArrayList<Bus> buses = null;
+    private static ArrayList<Comment> comments = null;
     private static ArrayList<String> timesToDownload = null;
     private static HashMap<String, Integer> timesVersions = null;
     private static boolean isNotDuringSafeRide;
@@ -44,94 +46,10 @@ public final class BusManager {
         routes = new ArrayList<Route>();
         hideRoutes = new ArrayList<String>();
         buses = new ArrayList<Bus>();
+        comments = new ArrayList<Comment>();
         timesToDownload = new ArrayList<String>();
         timesVersions = new HashMap<String, Integer>();
         isNotDuringSafeRide = false;
-    }
-
-    /*
-    Given a JSONObject of the version file and a fFileGrabber, parses all of the times.
-    Version also has a list of hideroutes, hidestops, combine, and opposite stops. We also handle
-    parsing those here, since we already have the file.
-    To parse all of the times, we get the stop name from the version file then make a new request
-    to get the times JSON object corresponding to that stop ID.
-    So, the sequence of events is: we're parsing version.json, we find a stop object (specified by an
-    ID), we request the JSON of times for that stop, and we parse those times.
-     */
-    public static void parseVersion(JSONObject versionJson) throws JSONException {
-        ArrayList<Stop> stops = sharedBusManager.getStops();
-        //if (MainActivity.LOCAL_LOGV) Log.v("Debugging", "Looking for times for " + stops.size() + " stops.");
-        JSONArray jHides = new JSONArray();
-        if (versionJson != null) jHides = versionJson.getJSONArray("hideroutes");
-        for (int j = 0; j < jHides.length(); j++) {      // For each element of our list of hideroutes.
-            String hideMeID = jHides.getString(j);      // ID of the route to hide.
-            //if (MainActivity.LOCAL_LOGV) Log.v("JSONDebug", "Hiding a route... " + hideMeID);
-            Route r = sharedBusManager.getRouteByID(hideMeID);
-            hideRoutes.add(hideMeID);           // In case we "hide" the route before it exists.
-            if (r != null) {
-                routes.remove(r);       // If we already parsed this route, remove it.
-                for (Stop s : stops) {   // But, we must update any stops that have this route.
-                    if (s.hasRouteByString(hideMeID)) {
-                        s.getRoutes().remove(r);
-                        //if (MainActivity.LOCAL_LOGV) Log.v("JSONDebug", "Removing route " + r.getID() + " from " + s.getName());
-                    }
-                }
-            }
-        }
-
-        JSONArray jHideStops = new JSONArray();
-        if (versionJson != null) jHideStops = versionJson.getJSONArray("hidestops");
-        for (int j = 0; j < jHideStops.length(); j++) {
-            String hideMeID = jHideStops.getString(j);
-            //if (MainActivity.LOCAL_LOGV) Log.v("JSONDebug", "Hiding a stop... " + hideMeID);
-            Stop s = sharedBusManager.getStopByID(hideMeID);
-            if (s != null) s.setHidden(true);
-        }
-
-        JSONArray jCombine = new JSONArray();
-        if (versionJson != null) jCombine = versionJson.getJSONArray("combine");
-        for (int j = 0; j < jCombine.length(); j++) {
-            JSONObject combineObject = jCombine.getJSONObject(j);
-            String name = Stop.cleanName(combineObject.getString("name"));
-            String first = combineObject.getString("first");
-            String second = combineObject.getString("second");
-            Stop firstStop = sharedBusManager.getStopByID(first);
-            Stop secondStop = sharedBusManager.getStopByID(second);
-            if (firstStop != null && secondStop != null) {
-                firstStop.addChildStop(secondStop);
-                firstStop.setName(name);
-                secondStop.setParentStop(firstStop);
-                secondStop.setHidden(true);
-            }
-        }
-
-        JSONArray jOpposites = new JSONArray();
-        if (versionJson != null) jOpposites = versionJson.getJSONArray("opposite");
-        for (int j = 0; j < jOpposites.length(); j++) {
-            JSONObject oppositeObject = jOpposites.getJSONObject(j);
-            String name = Stop.cleanName(oppositeObject.getString("name"));
-            String first = oppositeObject.getString("first");
-            String second = oppositeObject.getString("second");
-            Stop firstStop = sharedBusManager.getStopByID(first);
-            Stop secondStop = sharedBusManager.getStopByID(second);
-            if (firstStop != null && secondStop != null) {
-                firstStop.setOppositeStop(secondStop);
-                firstStop.setName(name);
-                secondStop.setOppositeStop(firstStop);
-                secondStop.setParentStop(firstStop);
-                secondStop.setHidden(true);
-            }
-        }
-
-        JSONArray jVersion = new JSONArray();
-        if (versionJson != null) jVersion = versionJson.getJSONArray("versions");
-        for (int j = 0; j < jVersion.length(); j++) {
-            JSONObject stopObject = jVersion.getJSONObject(j);
-            String file = stopObject.getString("file");
-            //if (MainActivity.LOCAL_LOGV) Log.v("Debugging", "Looking for times for " + file);
-            timesToDownload.add(DownloaderHelper.AMAZON_URL + file);
-            timesVersions.put(file.substring(0, file.indexOf(".json")), stopObject.getInt("version"));
-        }
     }
 
     public ArrayList<Stop> getStops() {
@@ -142,6 +60,18 @@ public final class BusManager {
             }
         }
         Collections.sort(result, Stop.compare);
+        return result;
+    }
+
+    public ArrayList<Comment> getComments() {
+        ArrayList<Comment> result = new ArrayList<Comment>(comments);
+        /*for (Comment comment : comments) {
+            //if (stop.isHidden()) { // || !stop.hasTimes()) {    Show stops without times for now.
+                result.remove(stop);
+            //}
+        }
+        */
+        //Collections.sort(result, Stop.compare);
         return result;
     }
 
@@ -394,6 +324,25 @@ public final class BusManager {
         return s;
     }
 
+    public Comment getComment(String ID, String text) {
+        Comment s = getCommentByID(ID);
+        if (s == null) {
+            s = new Comment(ID, text, "", "");
+            comments.add(s);
+        }
+        else {
+            s.setValues(ID, text);
+            if (!comments.contains(s)) comments.add(s);
+        }
+        return s;
+    }
+
+    public Comment getCommentByID(String ID) {
+        for (Comment s : comments) {
+            if (s.getID().equals(ID)) return s;
+        }
+        return null;
+    }
     public int numStops() {
         return stops.size();
     }

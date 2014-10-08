@@ -81,6 +81,7 @@ import ru.vlbustracker.helpers.BusDownloaderHelper;
 import ru.vlbustracker.helpers.BusItem;
 import ru.vlbustracker.helpers.BusClusterRenderer;
 import ru.vlbustracker.helpers.BusManager;
+import ru.vlbustracker.helpers.CommentsDownloaderHelper;
 import ru.vlbustracker.helpers.Downloader;
 import ru.vlbustracker.helpers.DownloaderArray;
 import ru.vlbustracker.helpers.DownloaderHelper;
@@ -92,6 +93,7 @@ import ru.vlbustracker.helpers.StopDownloaderHelper;
 import ru.vlbustracker.helpers.TimeDownloaderHelper;
 import ru.vlbustracker.helpers.VersionDownloaderHelper;
 import ru.vlbustracker.models.Bus;
+import ru.vlbustracker.models.Comment;
 import ru.vlbustracker.models.Route;
 import ru.vlbustracker.models.Stop;
 import ru.vlbustracker.models.Time;
@@ -175,6 +177,7 @@ public class MainActivity extends Activity {
     StopAdapter adapter_end;
     RouteAdapter adapter_route;
     private ClusterManager<BusItem> mClusterManager;
+    public String lastComment;
 
     // Search EditText
     //EditText inputSearch;
@@ -788,6 +791,8 @@ public class MainActivity extends Activity {
                             if ((busIdEstimate!=null)&&(busIdEstimate.length()>0)){
                                 new DownloaderArray(new TimeDownloaderHelper(busIdEstimate,2), getApplicationContext()).execute(DownloaderHelper.BUS_TIME_URL+busIdEstimate);
                             }
+
+                            new Downloader(new CommentsDownloaderHelper(), getApplicationContext(), null).execute(DownloaderHelper.COMMENT_GET_URL+lastComment);
 
                             showBusOnMap();
                             //setProgressBarIndeterminateVisibility(false);
@@ -2014,10 +2019,14 @@ public class MainActivity extends Activity {
             s = s + busEst.getTitle() + "|";
             s = s + busEst.getBody() + "|";
             s = s + busEst.getRoute() + "|";
+            s = s + busEst.getLocation().toString() + "|";
             s = s + inputText.getText().toString();
 
             new Poster().execute(s);
+            inputText.setText("");
+
         }
+
     }
 
 
@@ -2033,6 +2042,15 @@ public class MainActivity extends Activity {
 
             TextView input = (TextView) findViewById(R.id.comment_title);
             input.setText(getString(R.string.comments)+" " + busEst.getTitle() + " №"+ busEst.getBody());
+            String s = "";
+            for (Comment c : sharedManager.getComments()) {
+                s= s+c.getText()+"\n";
+            }
+            input = (TextView) findViewById(R.id.comment_body);
+            input.setText(s);
+
+            EditText inputEdit = (EditText) findViewById(R.id.comment_text);
+            inputEdit.setText("");
         }
     }
 

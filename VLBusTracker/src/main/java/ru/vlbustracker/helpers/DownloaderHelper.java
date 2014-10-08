@@ -24,7 +24,9 @@ public interface DownloaderHelper {
     static final String STOP_TIME_URL   = BUS_VL_URL+"stop/estimates?id_node=";
     static final String BUS_TIME_URL    = BUS_VL_URL+"bus/estimates?udid=";
 
-    static final String COMMENT_URL    = "http://busvlru.appspot.com/add/comment/";
+    static final String COMMENT_ADD_URL    = "http://busvlru.appspot.com/add/comment/";
+    static final String COMMENT_GET_URL    = "http://busvlru.appspot.com/get/comment/?last=";
+    //static final String COMMENT_URL    = "http://ved-import.ru/stat/1.php";
 
 
     public abstract void parse(JSONObject jsonObject) throws JSONException, IOException;

@@ -49,11 +49,9 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
         try {
             if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "First url: " + urls[0]);
             String res = downloadUrl(urls[0]);
-            //JSONArray jsa = new JSONArray(res);
             JSONObject jso = new JSONObject(res);
             if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "end: " + urls[0]);
-
-            return jso; //new JSONObject(res);
+            return jso;
         } catch (IOException e) {
             //Log.e("JSON", "DownloadURL IO error.");
             e.printStackTrace();
@@ -74,7 +72,8 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
                 ((MainActivity) main).setProgressBarIndeterminate(false); //WTF
             }*/
 
-            if (!helper.getClass().toString().contains("BusDownloaderHelper")) MainActivity.pieceDownloadsTogether(context);
+            //if (!helper.getClass().toString().contains("BusDownloaderHelper")) MainActivity.pieceDownloadsTogether(context);
+            if (helper.getClass().toString().contains("AggregateDownloaderHelper")) MainActivity.pieceDownloadsTogether(context);
         } catch (JSONException e) {
             Log.d(MainActivity.REFACTOR_LOG_TAG, "JSON Exception while parsing in onPostExecute.");
             e.printStackTrace();

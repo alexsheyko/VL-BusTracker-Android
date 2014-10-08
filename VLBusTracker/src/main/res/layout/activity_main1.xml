@@ -46,7 +46,7 @@
 
         <LinearLayout android:id="@+id/form_comment"
             android:gravity="center_vertical"
-            android:visibility="visible"
+            android:visibility="gone"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:orientation="vertical">
@@ -56,15 +56,27 @@
                 android:layout_height="wrap_content"
                 android:text="11"
                 android:textStyle="bold"
-                android:textSize="16.0sp"
-                android:textIsSelectable="false" />
-            <EditText
-                android:id="@+id/comment_text"
+                android:textSize="18.0sp"
+                android:textIsSelectable="false"
+                android:textColor="@android:color/holo_blue_dark" />
+            <TextView
+                android:id="@+id/comment_body"
                 android:layout_height="0dp"
                 android:layout_weight="1"
                 android:layout_width="fill_parent"
-                android:background="@android:color/white"
+                android:textSize="16.0sp"
+                android:textIsSelectable="false"
+                android:background="#fffffd9f"
+                android:editable="true"
                 android:textColor="@android:color/black" />
+            <EditText
+                android:id="@+id/comment_text"
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:background="@android:color/white"
+                android:textColor="@android:color/black"
+                android:clickable="true"
+                android:focusable="true" />
 
             <Button
                 android:layout_width="fill_parent"

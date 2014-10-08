@@ -1,6 +1,7 @@
 package ru.vlbustracker.helpers;
 
 import android.os.AsyncTask;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 
@@ -14,6 +15,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,22 +43,41 @@ public class Poster extends AsyncTask<String, Integer, Double> {
         //pb.setProgress(progress[0]);
     }
 
+    // convert from internal Java String format -> UTF-8
+    public static String convertToUTF8(String s) {
+        String out = null;
+        try {
+            out = new String(s.getBytes("UTF-8"), "ISO-8859-1");
+        } catch (java.io.UnsupportedEncodingException e) {
+            return null;
+        }
+        return out;
+    }
+
+    public static String getBase64(final String input) {
+        return Base64.encodeToString(input.getBytes(), Base64.DEFAULT);
+    }
+
     public void postData(String valueIWantToSend) {
         HttpClient httpclient = new DefaultHttpClient();
-        HttpPost httppost = new HttpPost(DownloaderHelper.COMMENT_URL);
+        HttpPost httppost = new HttpPost(DownloaderHelper.COMMENT_ADD_URL);
 
         try {
 
             List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-            nameValuePairs.add(new BasicNameValuePair("myHttpData", valueIWantToSend));
+            //valueIWantToSend= URLDecoder.encode(valueIWantToSend, "UTF-8");
+            valueIWantToSend = convertToUTF8(valueIWantToSend);
+            //valueIWantToSend.decode(valueIWantToSend, "UTF-8")
+            //valueIWantToSend = getBase64(valueIWantToSend);
+            nameValuePairs.add(new BasicNameValuePair("myHttpData", valueIWantToSend));//myHttpData
             httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
             HttpResponse response = httpclient.execute(httppost);
 
         } catch (ClientProtocolException e) {
-// TODO Auto-generated catch block
+            e.printStackTrace();
         } catch (IOException e) {
-// TODO Auto-generated catch block
+            e.printStackTrace();
         }
     }
 
