@@ -13,7 +13,7 @@ public interface DownloaderHelper {
     //static final String ROUTES_URL = TRANSLOC_URL + "/routes.json?" + QUERY;
     //static final String SEGMENTS_URL = TRANSLOC_URL + "/segments.json?" + QUERY;
     //static final String VEHICLES_URL = TRANSLOC_URL + "/vehicles.json?" + QUERY;
-    static final String AMAZON_URL = "https://s3.amazonaws.com/nyubustimes/1.0/";
+    //static final String AMAZON_URL = "https://s3.amazonaws.com/nyubustimes/1.0/";
     //static final String VERSION_URL = AMAZON_URL + "version.json";
 
     //VLBus
@@ -26,8 +26,6 @@ public interface DownloaderHelper {
 
     static final String COMMENT_ADD_URL    = "http://busvlru.appspot.com/add/comment/";
     static final String COMMENT_GET_URL    = "http://busvlru.appspot.com/get/comment/?last=";
-    //static final String COMMENT_URL    = "http://ved-import.ru/stat/1.php";
-
 
     public abstract void parse(JSONObject jsonObject) throws JSONException, IOException;
     public abstract void parseArray(JSONArray jsonObject) throws JSONException, IOException;

@@ -49,9 +49,14 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
         try {
             if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "First url: " + urls[0]);
             String res = downloadUrl(urls[0]);
-            JSONObject jso = new JSONObject(res);
-            if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "end: " + urls[0]);
-            return jso;
+            if (res!=null) {
+                JSONObject jso = new JSONObject(res);
+                if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "end OK: " + urls[0]);
+                return jso;
+            }else{
+                if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "end Emty : " + urls[0]);
+                return new JSONObject();
+            }
         } catch (IOException e) {
             //Log.e("JSON", "DownloadURL IO error.");
             e.printStackTrace();
@@ -100,10 +105,16 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
             conn.connect();
             //int response = conn.getResponseCode();
             //Log.d("JSON", "The response is: " + response);
-            is = conn.getInputStream();
 
-            // Convert the InputStream into a string
-            return readIt(is);
+            int responseCode = conn.getResponseCode();
+            //Log.v("HttpRequest code:", " - "+responseCode);
+            if(responseCode == HttpURLConnection.HTTP_OK || responseCode == HttpURLConnection.HTTP_ACCEPTED) {
+                is = conn.getInputStream();
+                return readIt(is);
+            }else{
+                Log.e("HTTP error", "Error, e: "+ responseCode + " "+conn.getResponseMessage() + myUrl+ " \n ");
+                return null;
+            }
 
             // Makes sure that the InputStream is closed after the app is
             // finished using it.
@@ -116,12 +127,14 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
 
     // Reads an InputStream and converts it to a String.
     private String readIt(InputStream stream) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "iso-8859-1"), 128);
+        //BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "iso-8859-1"), 128);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "UTF-8"), 128);
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
             sb.append(line);
         }
+        reader.close();
         return sb.toString();
     }
 

@@ -57,13 +57,19 @@ public class Comment {
         for (int i = 0; i < jComent.length(); i++) {
             //JSONObject stopObject = jStops.getJSONObject(i);
             JSONArray item = jComent.getJSONArray(i);
-            if (item.length()>1) {
+            if (item.length()>6) {
                 String ID = item.getString(0);
-                String Name = item.getString(1);
+                String idbus = item.getString(1);
+                String title = item.getString(2);
+                String body = item.getString(3);
+                String route = item.getString(4);
+                String loc = item.getString(5);
+                String date = item.getString(6);
+                String text = item.getString(7);
                 //String stopLat = stopObject.getString(3);
                 //String stopLng = stopObject.getString(2);
-
-                Comment s = sharedManager.getComment(ID, Name);
+                Comment s = sharedManager.getComment(ID, text);
+                s.setValues(ID,text,idbus,title,body,route,loc,date);
                 //Comment s = new Comment(ID, Name, "", "");
             }
             //if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Number of stops in manager: " + sharedManager.numStops());
@@ -80,11 +86,17 @@ public class Comment {
         this.hidden = hidden;
     }
 
-    public void setValues(String mID, String mText) {
+    public void setValues(String mID, String mText, String midbus, String mtitle, String mbody, String mroute, String mloc, String mdate ) {
         //if (name.equals("")) name = cleanName(mName);
         //if (loc == null) loc = new LatLng(Double.parseDouble(mLat), Double.parseDouble(mLng));
         id = mID;
         text = mText;
+        busId = midbus;
+        busTitle = mtitle;
+        busBody = mbody;
+        route = mroute;
+        //loc = mloc; !!need str2loc
+        date = mdate;
     }
 
     public LatLng getLocation() {

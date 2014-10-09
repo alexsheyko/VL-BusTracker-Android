@@ -42,10 +42,14 @@ public class DownloaderArray extends AsyncTask<String, Void, JSONArray> {
         try {
             if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "First url: " + urls[0]);
             String res = downloadUrl(urls[0]);
-            JSONArray jsa = new JSONArray(res);
-            //JSONObject jso = new JSONObject(res);
-
-            return jsa; //new JSONObject(res);
+            if (res!=null) {
+                JSONArray jsa = new JSONArray(res);
+                if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "end OK: " + urls[0]);
+                return jsa;
+            }else{
+                if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "end Emty : " + urls[0]);
+                return new JSONArray();
+            }
         } catch (IOException e) {
             //Log.e("JSON", "DownloadURL IO error.");
             e.printStackTrace();
@@ -64,7 +68,7 @@ public class DownloaderArray extends AsyncTask<String, Void, JSONArray> {
             //pieceDownloadsTogether
             //if (!helper.getClass().toString().contains("BusDownloaderHelper")) MainActivity.pieceDownloadsTogether(context);
         } catch (JSONException e) {
-            Log.d(MainActivity.REFACTOR_LOG_TAG, "JSON Exception while parsing in onPostExecute.");
+            Log.d(MainActivity.REFACTOR_LOG_TAG, "JSONA Exception while parsing in onPostExecute.");
             e.printStackTrace();
         } catch (IOException e) {
             Log.d(MainActivity.REFACTOR_LOG_TAG, "IO Exception while parsing in onPostExecute.");
@@ -106,6 +110,7 @@ public class DownloaderArray extends AsyncTask<String, Void, JSONArray> {
     // Reads an InputStream and converts it to a String.
     private String readIt(InputStream stream) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(stream, "iso-8859-1"), 128);
+        //check kodirovka!
         StringBuilder sb = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {

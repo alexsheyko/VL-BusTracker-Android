@@ -331,7 +331,7 @@ public final class BusManager {
             comments.add(s);
         }
         else {
-            s.setValues(ID, text);
+            //s.setValues(ID, text);
             if (!comments.contains(s)) comments.add(s);
         }
         return s;
