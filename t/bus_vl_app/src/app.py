@@ -24,6 +24,8 @@ import cgi
 import base64
 import urllib
 import datetime
+import time
+
 
 #from google.appengine.api import users
 from google.appengine.ext import ndb
@@ -40,8 +42,8 @@ class Comment(ndb.Model):
   loc = ndb.StringProperty()#encoding='utf_8')
   text = ndb.StringProperty(indexed=False)#TextProperty
   date = ndb.DateTimeProperty(auto_now_add=True)
-  def formatted_date(self):
-    return self.date.strftime('%d %b %Y %H:%M:%S')
+  #def formatted_date(self):
+  #  return self.date.strftime('%d %b %Y %H:%M:%S')
 
 class AddComment(webapp2.RequestHandler):
   def post(self):
@@ -62,43 +64,69 @@ class AddComment(webapp2.RequestHandler):
     self.response.out.write('')
 
 def get_comments(last_id):
-    com_str = memcache.get('%s:coment' % last_id)
-    if com_str is not None:
-        return com_str
+    status = memcache.get('%s:status' % last_id)
+    if status is not None:
+        com_str = memcache.get('%s:coment' % last_id)
+        if com_str is not None:
+            return com_str,status
+        else:
+            com_str,is_empty = get_comments_db(last_id)
+            if not memcache.add('%s:coment' % last_id, com_str, 0): #add(key, value, time=0, min_compress_len=0, namespace=None)
+                logging.error('Memcache set failed.')
+            if not memcache.add('%s:status' % last_id, is_empty, 0):
+                logging.error('Memcache set failed1.')
+            return com_str,is_empty
     else:
-        com_str = get_comments_db(last_id)
-        if not memcache.add('%s:coment' % last_id, com_str, 0): #add(key, value, time=0, min_compress_len=0, namespace=None)
-            logging.error('Memcache set failed.')
-        return com_str
+            com_str,is_empty = get_comments_db(last_id)
+            if not memcache.add('%s:coment' % last_id, com_str, 0): #add(key, value, time=0, min_compress_len=0, namespace=None)
+                logging.error('Memcache set failed.')
+            if not memcache.add('%s:status' % last_id, is_empty, 0):
+                logging.error('Memcache set failed1.')
+            return com_str,is_empty
 
 def get_comments_db(last_id):
     if last_id=="null":
         last_id="0"
-    last_date=datetime.datetime.fromtimestamp(int(last_id))
+    else:
+      if last_id is None:
+        last_id="0"
+      else:
+        if last_id=="":
+          last_id="0"
+    long_date=long(last_id)
+    last_date=datetime.datetime.fromtimestamp(long_date/1000000)
+    #last_date=last_date+(long(last_id)%1000000)/1000000
     com_query = Comment.query(Comment.date>last_date).order(-Comment.date)
     com = com_query.fetch(20)
 
+    is_empty=True
     s = '{last:11,data:{comments:['
     for item in com:
-      s = s + '['
-      s = s + '"'+str(item.key.id())+'",'
-      s = s + '"'+item.idbus+'",'
-      s = s + '"'+item.title+'",'
-      s = s + '"'+item.body+'",'
-      s = s + '"'+item.route+'",'
-      s = s + '"'+item.loc+'",'
-      s = s + '"'+item.date.strftime("%s")+'",' #1412831358
-      #s = s + '"'+item.date.strftime("%y/%m/%d")+'",'              #2014/09/05
-      s = s + '"'+item.text+'"'
-      #s = s + '"'+urllib.quote('абвгд').encode('utf-8')+'"'
-      s = s + '],'
+      full_date=long(item.date.strftime("%s%f"))
+      if full_date>long_date:
+        is_empty=False
+        s = s + '['
+        s = s + '"'+str(item.key.id())+'",'
+        s = s + '"'+item.idbus+'",'
+        s = s + '"'+item.title+'",'
+        s = s + '"'+item.body+'",'
+        s = s + '"'+item.route+'",'
+        s = s + '"'+item.loc+'",'
+        s = s + '"'+item.date.strftime("%s%f")+'",' #141 284 8237 900100
+        #s = s + '"'+item.date.strftime("%s")+'",' #141 283 1358
+        #s = s + '"'+item.date.strftime("%y/%m/%d")+'",'              #2014/09/05
+        s = s + '"'+item.text+'"'
+        #s = s + '"'+urllib.quote('абвгд').encode('utf-8')+'"'
+        s = s + '],'
     s=s+'[]]}}'
-    return s
+    return s,is_empty
 
 class GetComment(webapp2.RequestHandler):
   def get(self):
     last = self.request.get('last')
-    s=get_comments(last);
+    s,is_empty=get_comments(last);
+    if (is_empty):
+        self.error(304) #no need read
     self.response.out.write(s)
 
 class PageRenderer(webapp2.RequestHandler):

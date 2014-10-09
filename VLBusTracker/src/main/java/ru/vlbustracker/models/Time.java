@@ -77,7 +77,7 @@ public class Time {
         timeOfWeek = getCurrentTimeOfWeek();
     }*/
 
-    private TimeOfWeek getCurrentTimeOfWeek() {
+   /* private TimeOfWeek getCurrentTimeOfWeek() {
         Calendar rightNow = Calendar.getInstance();
         rightNow.setTimeZone(TimeZone.getTimeZone("America/New_York"));
         String dayOfWeek = rightNow.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.LONG, Locale.getDefault());
@@ -86,7 +86,7 @@ public class Time {
             timeOfWeek = TimeOfWeek.Weekend;
         else if (dayOfWeek.equals("Friday")) timeOfWeek = TimeOfWeek.Friday;
         return timeOfWeek;
-    }
+    }*/
 
     /*
     public static Time getCurrentTime() {

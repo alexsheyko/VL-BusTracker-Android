@@ -17,6 +17,19 @@ import ru.vlbustracker.activities.MainActivity;
 import ru.vlbustracker.helpers.BusManager;
 
 public class Comment {
+    public static final Comparator<Comment> compare = new Comparator<Comment>() {
+        @Override
+        public int compare(Comment com1, Comment com2) {
+            if (com1.timestamp > com2.timestamp){
+                return 1;
+            }else if (com1.timestamp < com2.timestamp){
+                return -1;
+
+            }else {
+                return 0;
+            }
+        }
+    };
     String id;
     String text;
     String busId;
@@ -24,6 +37,7 @@ public class Comment {
     String busBody;
     String route;
     String date;
+    long timestamp;
     LatLng loc;
     boolean favorite;
     boolean hidden;
@@ -53,6 +67,7 @@ public class Comment {
 
         if (Json != null) jComent = Json.getJSONArray("comments");
 
+
         if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Parsing # comments: " + jComent.length());
         for (int i = 0; i < jComent.length(); i++) {
             //JSONObject stopObject = jStops.getJSONObject(i);
@@ -64,12 +79,12 @@ public class Comment {
                 String body = item.getString(3);
                 String route = item.getString(4);
                 String loc = item.getString(5);
-                String date = item.getString(6);
+                String time = item.getString(6);
                 String text = item.getString(7);
                 //String stopLat = stopObject.getString(3);
                 //String stopLng = stopObject.getString(2);
-                Comment s = sharedManager.getComment(ID, text);
-                s.setValues(ID,text,idbus,title,body,route,loc,date);
+                Comment s = sharedManager.getComment(ID, text, time);
+                s.setValues(ID,text,idbus,title,body,route,loc,time);
                 //Comment s = new Comment(ID, Name, "", "");
             }
             //if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Number of stops in manager: " + sharedManager.numStops());
@@ -86,7 +101,7 @@ public class Comment {
         this.hidden = hidden;
     }
 
-    public void setValues(String mID, String mText, String midbus, String mtitle, String mbody, String mroute, String mloc, String mdate ) {
+    public void setValues(String mID, String mText, String midbus, String mtitle, String mbody, String mroute, String mloc, String mtime ) {
         //if (name.equals("")) name = cleanName(mName);
         //if (loc == null) loc = new LatLng(Double.parseDouble(mLat), Double.parseDouble(mLng));
         id = mID;
@@ -96,7 +111,7 @@ public class Comment {
         busBody = mbody;
         route = mroute;
         //loc = mloc; !!need str2loc
-        date = mdate;
+        timestamp = Long.parseLong(mtime);
     }
 
     public LatLng getLocation() {
@@ -111,6 +126,9 @@ public class Comment {
         return id;
     }
 
+    public String getBusId() {
+        return busId;
+    }
     public String getText() {
         return text;
     }

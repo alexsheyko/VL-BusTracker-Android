@@ -40,6 +40,7 @@ public final class BusManager {
     private static ArrayList<String> timesToDownload = null;
     private static HashMap<String, Integer> timesVersions = null;
     private static boolean isNotDuringSafeRide;
+    private long lastComment;
 
     private BusManager() {
         stops = new ArrayList<Stop>();
@@ -71,8 +72,26 @@ public final class BusManager {
             //}
         }
         */
-        //Collections.sort(result, Stop.compare);
+        Collections.sort(result, Comment.compare);
         return result;
+    }
+
+    public String getCommentsStr(String busId){
+        String s="";
+        if (busId!=null) {
+            for (Comment c : comments) {
+                if (c.getBusId().equals(busId)) {
+                    s = s + c.getText() + "\n";
+                }
+            }
+        }else {
+            for (Comment c : getComments()) {
+                s = s + c.getText()+ "\n";
+               // s = s + c.getText()+":"+c.getBusId() + "\n";
+            }
+        }
+        return s;
+
     }
 
     public static void parseTime(JSONObject timesJson) throws JSONException {
@@ -324,7 +343,7 @@ public final class BusManager {
         return s;
     }
 
-    public Comment getComment(String ID, String text) {
+    public Comment getComment(String ID, String text, String time) {
         Comment s = getCommentByID(ID);
         if (s == null) {
             s = new Comment(ID, text, "", "");
@@ -334,6 +353,10 @@ public final class BusManager {
             //s.setValues(ID, text);
             if (!comments.contains(s)) comments.add(s);
         }
+        Long t = Long.parseLong(time);
+        if (lastComment<t){
+            lastComment=t;
+        }
         return s;
     }
 
@@ -342,6 +365,10 @@ public final class BusManager {
             if (s.getID().equals(ID)) return s;
         }
         return null;
+    }
+
+    public String getLastCommentTime(){
+        return Long.toString(lastComment);
     }
     public int numStops() {
         return stops.size();

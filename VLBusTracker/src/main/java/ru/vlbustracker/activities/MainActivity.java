@@ -177,7 +177,7 @@ public class MainActivity extends Activity {
     StopAdapter adapter_end;
     RouteAdapter adapter_route;
     private ClusterManager<BusItem> mClusterManager;
-    public String lastComment;
+    //public long lastComment;
 
     // Search EditText
     //EditText inputSearch;
@@ -787,8 +787,8 @@ public class MainActivity extends Activity {
                             if ((busIdEstimate!=null)&&(busIdEstimate.length()>0)){
                                 new DownloaderArray(new TimeDownloaderHelper(busIdEstimate,2), getApplicationContext()).execute(DownloaderHelper.BUS_TIME_URL+busIdEstimate);
                             }
-
-                            new Downloader(new CommentsDownloaderHelper(), getApplicationContext(), null).execute(DownloaderHelper.COMMENT_GET_URL+lastComment);
+                            String lasttime = BusManager.getBusManager().getLastCommentTime();
+                            new Downloader(new CommentsDownloaderHelper(), getApplicationContext(), null).execute(DownloaderHelper.COMMENT_GET_URL+ lasttime );
 
                             showBusOnMap();
                             //setProgressBarIndeterminateVisibility(false);
@@ -2003,6 +2003,17 @@ public class MainActivity extends Activity {
     }
 
     @SuppressWarnings("UnusedParameters")
+    public void disableOtbor(View view) {
+        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Disable otbor.");
+        BusManager sharedManager = BusManager.getBusManager();
+
+        String s = sharedManager.getCommentsStr(busIdEstimate);
+        TextView input = (TextView) findViewById(R.id.comment_body);
+        input.setText(s);
+
+    }
+
+    @SuppressWarnings("UnusedParameters")
     public void sendCoomment(View view) {
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Send comment.");
         if (busIdEstimate!=null){
@@ -2038,10 +2049,9 @@ public class MainActivity extends Activity {
 
             TextView input = (TextView) findViewById(R.id.comment_title);
             input.setText(getString(R.string.comments)+" " + busEst.getTitle() + " №"+ busEst.getBody());
-            String s = "";
-            for (Comment c : sharedManager.getComments()) {
-                s= s+c.getText()+"\n";
-            }
+
+            String s = sharedManager.getCommentsStr(null);
+
             input = (TextView) findViewById(R.id.comment_body);
             input.setText(s);
 

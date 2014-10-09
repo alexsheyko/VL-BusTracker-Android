@@ -112,7 +112,7 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
                 is = conn.getInputStream();
                 return readIt(is);
             }else{
-                Log.e("HTTP error", "Error, e: "+ responseCode + " "+conn.getResponseMessage() + myUrl+ " \n ");
+                if (MainActivity.LOCAL_LOGV) Log.e("HTTP error", "Error, e: "+ responseCode + " "+conn.getResponseMessage() + myUrl+ " \n ");
                 return null;
             }
 

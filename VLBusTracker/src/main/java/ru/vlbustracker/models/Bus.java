@@ -148,7 +148,7 @@ public class Bus {
 
     public ArrayList<Time> getTimes() {
         ArrayList<Time> result = new ArrayList<Time>();
-        if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.LOG_TAG, "Times bus: (" + times.size() + " for " + this.getTitle() + " " + this.getID() + ")");
+        //if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.LOG_TAG, "Times bus: (" + times.size() + " for " + this.getTitle() + " " + this.getID() + ")");
         for (Time t : times) {
             if (t.notExpire()) {
                 result.add(t);
