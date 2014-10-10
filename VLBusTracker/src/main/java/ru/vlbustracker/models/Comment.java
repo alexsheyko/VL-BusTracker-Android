@@ -9,8 +9,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 
 import ru.vlbustracker.activities.MainActivity;
@@ -41,7 +43,7 @@ public class Comment {
     LatLng loc;
     boolean favorite;
     boolean hidden;
-    private long lastUpdateTime;
+    //private long lastUpdateTime;
 
     public Comment(String mID, String mText, String mLat, String mLng) {
         text = cleanName(mText);
@@ -130,12 +132,27 @@ public class Comment {
     public String getBusId() {
         return busId;
     }
+
     public String getText() {
         return text;
     }
 
+    public String getDateStr(){
+
+         //141 293 9116-578-090
+
+        String str = Long.toString(timestamp);
+        if (str.length()>=16) {
+            str = str.substring(0, str.length() - 3);
+            Date mdate = new Date(Long.parseLong(str));
+            //return mdate.toString();
+            return new SimpleDateFormat("HH:mm dd-MM-yyyy").format(mdate);
+        }
+        return new Date().toString();
+
+    }
     public String getBusTxt() {
-        return busId + ": " + busTitle + " " + busBody;
+        return "" + busTitle + " " + busBody;
     }
 
 
@@ -144,16 +161,17 @@ public class Comment {
     }
 
     public void setLastUpdateTime(Long time) {
-        this.lastUpdateTime = time;
+        //this.lastUpdateTime = time;
     }
 
+    /*
     public Boolean notExpireTime() {
-        if((System.currentTimeMillis()-lastUpdateTime)>1000*60){
-            return false;
-        }else return true;
+        //if((System.currentTimeMillis()-lastUpdateTime)>1000*60){
+        //    return false;
+        //}else return true;
 
     }
-
+    */
 
 }
 

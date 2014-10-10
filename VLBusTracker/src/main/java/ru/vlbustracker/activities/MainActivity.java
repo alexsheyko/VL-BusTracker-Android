@@ -180,6 +180,7 @@ public class MainActivity extends Activity {
     private ClusterManager<BusItem> mClusterManager;
     private ListView messagesList;
     private MessageAdapter messageAdapter;
+    private Boolean messageOtborEnable = Boolean.FALSE;
 
     //public long lastComment;
 
@@ -2033,10 +2034,24 @@ public class MainActivity extends Activity {
         TextView input = (TextView) findViewById(R.id.comment_body);
         input.setText(s);
         */
-        TextView input = (TextView) findViewById(R.id.comment_title);
-        input.setText("all");
+        if (messageOtborEnable) {
+            messageOtborEnable=true;
+            messageAdapter.getFilter().filter(null);
 
-        messageAdapter.getFilter().filter(busIdEstimate);
+            TextView input = (TextView) findViewById(R.id.comment_title);
+            input.setText(getString(R.string.comments_all));
+        }else{
+            messageOtborEnable=false;
+            if (busIdEstimate!=null) {
+                messageAdapter.getFilter().filter(busIdEstimate);
+                Bus busEst = sharedManager.getBus(busIdEstimate);
+                TextView input = (TextView) findViewById(R.id.comment_title);
+                input.setText(getString(R.string.comments) + " " + busEst.getTitle() + " №" + busEst.getBody());
+            }else{
+                TextView input = (TextView) findViewById(R.id.comment_title);
+                input.setText(getString(R.string.bus_not_select));
+            }
+        }
         //MainActivity.this.adapter_start.getFilter().filter(cs);
 
     }
@@ -2075,12 +2090,17 @@ public class MainActivity extends Activity {
             findViewById(R.id.form_comment).setVisibility(View.VISIBLE);
             findViewById(R.id.main_layout).setVisibility(View.GONE);
 
-            TextView input = (TextView) findViewById(R.id.comment_title);
-            input.setText(getString(R.string.comments)+" " + busEst.getTitle() + " №"+ busEst.getBody());
-
-            //String s = sharedManager.getCommentsStr(null);
+            messageAdapter.clearnMessage();
             for (Comment c : sharedManager.getComments()) {
                 messageAdapter.addMessage(c, MessageAdapter.DIRECTION_OUTGOING);
+            }
+
+            if (busIdEstimate!=null) {
+                messageAdapter.getFilter().filter(busIdEstimate);
+                messageOtborEnable=true;
+                //Bus busEst = sharedManager.getBus(busIdEstimate);
+                TextView input = (TextView) findViewById(R.id.comment_title);
+                input.setText(getString(R.string.comments) + " " + busEst.getTitle() + " №" + busEst.getBody());
             }
 
            // input = (TextView) findViewById(R.id.comment_body);

@@ -3,6 +3,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@android:color/white"
     android:padding="10dp">
 
     <RelativeLayout android:layout_width="fill_parent" android:layout_height="fill_parent"
@@ -19,12 +20,13 @@
             android:layout_alignParentLeft="true"
             android:paddingLeft="10dp"
             android:paddingBottom="6dp"
-            android:textColor="@android:color/white" android:textStyle="bold"/>
+            android:textColor="@android:color/black"
+            android:textStyle="bold"/>
 
         <TextView
             android:id="@+id/txtDate"
             android:layout_alignParentRight="true"
-            android:textColor="@android:color/white"
+            android:textColor="@android:color/darker_gray"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingRight="2dp"

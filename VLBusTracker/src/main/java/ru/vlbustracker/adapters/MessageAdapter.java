@@ -33,10 +33,18 @@ public  class MessageAdapter  extends BaseAdapter implements Filterable {
     public MessageAdapter(Activity activity) {
         layoutInflater = activity.getLayoutInflater();
         messages = new ArrayList<Pair<Comment, Integer>>();
+        filter_messages = new ArrayList<Pair<Comment, Integer>>();
     }
 
     public void addMessage(Comment message, int direction) {
         messages.add(new Pair(message, direction));
+        filter_messages.add(new Pair(message, direction));
+        notifyDataSetChanged();
+    }
+
+    public void clearnMessage() {
+        messages.clear();
+        filter_messages.clear();
         notifyDataSetChanged();
     }
 
@@ -90,6 +98,9 @@ public  class MessageAdapter  extends BaseAdapter implements Filterable {
         txtMessage = (TextView) convertView.findViewById(R.id.txtSender);
         txtMessage.setText(message.getBusTxt());
 
+        txtMessage = (TextView) convertView.findViewById(R.id.txtDate);
+        txtMessage.setText(message.getDateStr()+" :"+message.getBusId());
+
         return convertView;
     }
 
@@ -101,14 +112,17 @@ public  class MessageAdapter  extends BaseAdapter implements Filterable {
             @SuppressWarnings("unchecked")
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
+                messages = (ArrayList<Pair<Comment, Integer>>) results.values;
+                notifyDataSetChanged();
+                notifyDataSetInvalidated();
                 if (results.count == 0) {
                     //stops = (ArrayList<Stop>) results.values;
                     //notifyDataSetChanged();
-                    notifyDataSetInvalidated();
+                    //notifyDataSetInvalidated();
                 }else {
-                    messages = (ArrayList<Pair<Comment, Integer>>) results.values;
                     //new ArrayList<Pair<Comment, Integer>>();
-                    notifyDataSetChanged();
+                    //notifyDataSetChanged();
+
                 }
             }
 
@@ -118,23 +132,28 @@ public  class MessageAdapter  extends BaseAdapter implements Filterable {
 
                 FilterResults results = new FilterResults();
                 if (constraint == null || constraint.length() == 0) {
-                    results.values = messages;
-                    results.count = messages.size();
+                    synchronized(this) {
+                        results.values = filter_messages;
+                        results.count = filter_messages.size();
+                    }
                 }else {
+                    constraint = constraint.toString().toLowerCase();
+
                     ArrayList<Pair<Comment, Integer>> FilteredArray = new ArrayList<Pair<Comment, Integer>>();
 
-                    constraint = constraint.toString().toLowerCase();
-                    for (int i = 0; i < messages.size(); i++) {
-                        Comment com = messages.get(i).first;
+                    for (int i = 0; i < filter_messages.size(); i++) {
+                        Comment com = filter_messages.get(i).first;
                         if (com.getBusId().equals(constraint)) {
                             FilteredArray.add(new Pair(com, 1));
                             //FilteredArray.add(com);
+                            //if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Set filter  =" + com.getID()+"-"+ messages.size()+"-"+i);
                         }
                     }
                     results.count = FilteredArray.size();
                     results.values = FilteredArray;
                 }
 
+                //if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Set filter  " + results.count);
                 return results;
             }
         };

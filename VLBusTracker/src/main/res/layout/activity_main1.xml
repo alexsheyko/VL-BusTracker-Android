@@ -46,7 +46,7 @@
 
         <LinearLayout android:id="@+id/form_comment"
             android:gravity="center_vertical"
-            android:visibility="visible"
+            android:visibility="gone"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:orientation="vertical">
@@ -80,6 +80,7 @@
 
             <ListView
                 android:id="@+id/listMessages"
+                android:background="@android:color/white"
                 android:layout_width="match_parent"
                 android:layout_height="0dip"
                 android:layout_weight="1"
