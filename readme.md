@@ -22,27 +22,16 @@ Select your fork > Click clone).
   * A [Google Developer](https://console.developers.google.com) project consuming the Maps API,
   following the directions 
   [here](https://developers.google.com/maps/documentation/android/start#get_an_android_certificate_and_the_google_maps_api_key).
-  * A [Mashape](https://www.mashape.com) application consuming the 
-  [Transloc OpenAPI 1.2 API](https://www.mashape.com/transloc/openapi-1-2).
-  * Optionally a [Google Analytics](http://www.google.com/analytics/) application with production 
+  * Optionally a [Google Analytics](http://www.google.com/analytics/) application with production
   and debug properties.
-  * Optionally a [Flurry Analytics](http://www.flurry.com/) company with production and debug 
-  applications.
-9. Connect an Android phone or an emulator. In my opinion, a physical phone is easier to use. But,
-if you don't have one, you can try the built in Android emulator or a (much faster) 
-[Genymotion](http://www.genymotion.com/) emulator. As a warning, you may have to do some extra work 
-to get maps working in an emulator.
 10. Run the app (green arrow at the top of Android Studio)!
 
-Fork of [![Build Status](https://travis-ci.org/tpalsulich/NYU-BusTracker-Android.svg?branch=master)]
-(https://travis-ci.org/tpalsulich/NYU-BusTracker-Android)
 
 Release
 -------
 Here is the release process, for when you're ready to push a new version to the Play Store.
 
 1. Make sure `MainActivity.LOCAL_LOGV = false`. Run the app and make sure there is no logging.
-2. Make sure the `DownloaderHelper.AMAZON_URL` is correct.
 3. Make sure your API keys are correct.
 4. Bump the release version in build.gradle.
 5. Tag a release on GitHub.

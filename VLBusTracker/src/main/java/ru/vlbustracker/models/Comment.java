@@ -112,6 +112,7 @@ public class Comment {
         route = mroute;
         //loc = mloc; !!need str2loc
         timestamp = Long.parseLong(mtime);
+        //["5710239819104256","280","49","С043КТ","155","lat/lng: (43.1174487312232,131.882848364423)","1412914794768760","рпч пятница1"],
     }
 
     public LatLng getLocation() {
@@ -132,6 +133,11 @@ public class Comment {
     public String getText() {
         return text;
     }
+
+    public String getBusTxt() {
+        return busId + ": " + busTitle + " " + busBody;
+    }
+
 
     public void setName(String name) {
         this.text = name;

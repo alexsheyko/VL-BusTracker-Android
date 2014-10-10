@@ -46,7 +46,7 @@
 
         <LinearLayout android:id="@+id/form_comment"
             android:gravity="center_vertical"
-            android:visibility="gone"
+            android:visibility="visible"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:orientation="vertical">
@@ -78,23 +78,17 @@
                 android:layout_height="3dip"
                 android:visibility="visible" />
 
-            <ScrollView
-                android:id="@+id/SCROLLER_ID"
-                android:layout_width="fill_parent"
+            <ListView
+                android:id="@+id/listMessages"
+                android:layout_width="match_parent"
                 android:layout_height="0dip"
                 android:layout_weight="1"
-                android:scrollbars="vertical"
-                android:fillViewport="true">
-                <TextView
-                    android:id="@+id/comment_body"
-                    android:layout_height="wrap_content"
-                    android:layout_width="fill_parent"
-                    android:textSize="16.0sp"
-                    android:textIsSelectable="false"
-                    android:background="#fff1f1f1"
-                    android:textColor="@android:color/black"/>
-            </ScrollView>
-
+                android:transcriptMode="alwaysScroll"
+                android:padding="0dip"
+                android:divider="@null"
+                android:dividerHeight="0dp"
+                android:stackFromBottom="true"
+                tools:listitem="@layout/message_left"/>
 
             <View android:id="@+id/form_comment_footer_shadow"
                 android:layout_width="fill_parent"

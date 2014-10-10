@@ -73,6 +73,7 @@ import com.google.maps.android.clustering.ClusterManager;
 
 import ru.vlbustracker.VLBusTrackerApplication;
 import ru.vlbustracker.R;
+import ru.vlbustracker.adapters.MessageAdapter;
 import ru.vlbustracker.adapters.RouteAdapter;
 import ru.vlbustracker.adapters.StopAdapter;
 import ru.vlbustracker.adapters.TimeAdapter;
@@ -177,6 +178,9 @@ public class MainActivity extends Activity {
     StopAdapter adapter_end;
     RouteAdapter adapter_route;
     private ClusterManager<BusItem> mClusterManager;
+    private ListView messagesList;
+    private MessageAdapter messageAdapter;
+
     //public long lastComment;
 
     // Search EditText
@@ -250,6 +254,17 @@ public class MainActivity extends Activity {
                     });
                 }
 
+                mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+
+                    @Override
+                    public void onInfoWindowClick(Marker marker) {
+                        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Info window click " + marker.getTitle() + "");
+                        if (Bus2Mark.containsValue( marker)){
+                            openComments(null);
+                        }
+
+                    }
+                });
 
                 mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                     @Override
@@ -645,6 +660,9 @@ public class MainActivity extends Activity {
         renewBusRefreshTimer();
         createSearch();
 
+        messagesList = (ListView) findViewById(R.id.listMessages);
+        messageAdapter = new MessageAdapter(this);
+        messagesList.setAdapter(messageAdapter);
 
     }
 
@@ -1328,6 +1346,8 @@ public class MainActivity extends Activity {
             }, cbListener);
 
             listView.setAdapter(adapter_route);
+            if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "CreateRouteDialog TODO|NO NEED set 2 adapter.");
+
 
         }
         else if (startStop != null) {
@@ -2007,9 +2027,17 @@ public class MainActivity extends Activity {
         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Disable otbor.");
         BusManager sharedManager = BusManager.getBusManager();
 
-        String s = sharedManager.getCommentsStr(busIdEstimate);
+        //https://github.com/sinch/android-messaging-tutorial
+
+        /*String s = sharedManager.getCommentsStr(busIdEstimate);
         TextView input = (TextView) findViewById(R.id.comment_body);
         input.setText(s);
+        */
+        TextView input = (TextView) findViewById(R.id.comment_title);
+        input.setText("all");
+
+        messageAdapter.getFilter().filter(busIdEstimate);
+        //MainActivity.this.adapter_start.getFilter().filter(cs);
 
     }
 
@@ -2050,10 +2078,13 @@ public class MainActivity extends Activity {
             TextView input = (TextView) findViewById(R.id.comment_title);
             input.setText(getString(R.string.comments)+" " + busEst.getTitle() + " №"+ busEst.getBody());
 
-            String s = sharedManager.getCommentsStr(null);
+            //String s = sharedManager.getCommentsStr(null);
+            for (Comment c : sharedManager.getComments()) {
+                messageAdapter.addMessage(c, MessageAdapter.DIRECTION_OUTGOING);
+            }
 
-            input = (TextView) findViewById(R.id.comment_body);
-            input.setText(s);
+           // input = (TextView) findViewById(R.id.comment_body);
+            //input.setText(s);
 
             EditText inputEdit = (EditText) findViewById(R.id.comment_text);
             inputEdit.setText("");
