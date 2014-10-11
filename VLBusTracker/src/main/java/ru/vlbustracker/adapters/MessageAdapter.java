@@ -128,14 +128,22 @@ public  class MessageAdapter  extends BaseAdapter implements Filterable {
 
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
-                if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Set filter message " + constraint);
+                if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Set filter message " + constraint+" size:"+filter_messages.size()+"-"+messages.size());
 
                 FilterResults results = new FilterResults();
                 if (constraint == null || constraint.length() == 0) {
-                    synchronized(this) {
-                        results.values = filter_messages;
-                        results.count = filter_messages.size();
+                    ArrayList<Pair<Comment, Integer>> FilteredArray = new ArrayList<Pair<Comment, Integer>>();
+                    for (int i = 0; i < filter_messages.size(); i++) {
+                         Comment com = filter_messages.get(i).first;
+                         FilteredArray.add(new Pair(com, 1));
                     }
+                    results.count = FilteredArray.size();
+                    results.values = FilteredArray;
+
+                    //synchronized(this) {
+                        //results.values =  (ArrayList<Pair<Comment, Integer>>)  filter_messages;
+                        //results.count = filter_messages.size();
+                    //}
                 }else {
                     constraint = constraint.toString().toLowerCase();
 

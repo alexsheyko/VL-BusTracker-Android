@@ -29,6 +29,7 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
     public static final String CREATED_FILES_DIR = "VLBusCachedFiles";
     static Context context;
     //MainActivity main;
+    private OnTaskCompleted listener;
 
     public static Context getContext() {
         return context;
@@ -38,10 +39,15 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
         return null;
     }
 
-    public Downloader(DownloaderHelper helper, Context mContext, MainActivity mMain) {
+    public interface OnTaskCompleted{
+        void onTaskCompleted();
+    }
+
+    public Downloader(DownloaderHelper helper, Context mContext, MainActivity mMain, OnTaskCompleted listener) {
         this.helper = helper;
         context = mContext;
         //main = mMain;
+        this.listener = listener;
     }
 
     @Override
@@ -78,6 +84,11 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
             }*/
 
             //if (!helper.getClass().toString().contains("BusDownloaderHelper")) MainActivity.pieceDownloadsTogether(context);
+            if (helper.getClass().toString().contains("CommentsDownloaderHelper")){
+                if (listener != null)
+                    listener.onTaskCompleted();
+            }
+
             if (helper.getClass().toString().contains("AggregateDownloaderHelper")) MainActivity.pieceDownloadsTogether(context);
         } catch (JSONException e) {
             Log.d(MainActivity.REFACTOR_LOG_TAG, "JSON Exception while parsing in onPostExecute.");
@@ -112,7 +123,7 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
                 is = conn.getInputStream();
                 return readIt(is);
             }else{
-                if (MainActivity.LOCAL_LOGV) Log.v("HTTP error", "Error, e: "+ responseCode + " "+conn.getResponseMessage() + myUrl+ " \n ");
+                if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "HTTP Error, e: "+ responseCode + " "+conn.getResponseMessage() + myUrl+ " \n ");
                 return null;
             }
 

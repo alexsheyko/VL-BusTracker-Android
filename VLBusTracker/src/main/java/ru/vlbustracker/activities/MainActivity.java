@@ -49,6 +49,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -121,7 +122,7 @@ import java.util.TimerTask;
 import se.emilsjolander.stickylistheaders.StickyListHeadersListView;
 
 public class MainActivity extends Activity {
-    public static final boolean LOCAL_LOGV = true;
+    public static final boolean LOCAL_LOGV = false;
     public static final boolean SHOW_CLUSTER = false;
     private static final String RUN_ONCE_PREF = "runOnce";
     private static final String STOP_PREF = "stops";
@@ -131,14 +132,6 @@ public class MainActivity extends Activity {
     private static final String FIRST_TIME = "firstTime";
     public static final String REFACTOR_LOG_TAG = "refactor";
     public static final String LOG_TAG = "v_log_tag";
-    private final CompoundButton.OnCheckedChangeListener cbListener = new CompoundButton.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            Stop s = (Stop) buttonView.getTag();
-            s.setFavorite(isChecked);
-            getSharedPreferences(Stop.FAVORITES_PREF, MODE_PRIVATE).edit().putBoolean(s.getID(), isChecked).commit();
-        }
-    };
     List<Time> timesBetweenStartAndEnd;        // List of all times between start and end.
     Time nextBusTime;
     static ProgressDialog progressDialog;
@@ -187,7 +180,7 @@ public class MainActivity extends Activity {
     // Search EditText
     //EditText inputSearch;
 
-
+/*
     static {
         UIHandler = new Handler(Looper.getMainLooper());
     }
@@ -195,6 +188,24 @@ public class MainActivity extends Activity {
     public static void runOnUI(Runnable runnable) {
         UIHandler.post(runnable);
     }
+*/
+    //on check stop&route in list search
+    private final CompoundButton.OnCheckedChangeListener cbListener = new CompoundButton.OnCheckedChangeListener() {
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Set favorite " + buttonView.getTag().getClass().toString() + "");
+            //route not use favorite
+            if(buttonView.getTag().getClass().toString().contains("Stop")) {
+                Stop s = (Stop) buttonView.getTag();
+                if (s.getID().equals(STOP_ID_ANY)){
+                    s.setFavorite(true);
+                }else{
+                    s.setFavorite(isChecked);
+                }
+                getSharedPreferences(Stop.FAVORITES_PREF, MODE_PRIVATE).edit().putBoolean(s.getID(), isChecked).commit();
+            }
+        }
+    };
 
     private static Bitmap rotateBitmap(Bitmap source, float angle) {
         Matrix matrix = new Matrix();
@@ -239,8 +250,7 @@ public class MainActivity extends Activity {
                         @Override
                         public boolean onClusterItemClick(BusItem busItem) {
 
-                            if (LOCAL_LOGV)
-                                Log.v(REFACTOR_LOG_TAG, "Set bus Estimate " + busItem.Bus.getID() + "");
+                            if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Set bus Estimate " + busItem.Bus.getID() + "");
                             busIdEstimate = busItem.Bus.getID();
                             ((TextView) findViewById(R.id.right_layout_title)).setText("Загружаем");
 
@@ -392,7 +402,7 @@ public class MainActivity extends Activity {
             //new Downloader(new RouteDownloaderHelper(), context).execute(DownloaderHelper.ROUTES_URL);
             //new Downloader(new SegmentDownloaderHelper(), context).execute(DownloaderHelper.SEGMENTS_URL);
             //new Downloader(new VersionDownloaderHelper(), context).execute(DownloaderHelper.VERSION_URL);
-            new Downloader(new AggregateDownloaderHelper(), context, this).execute(DownloaderHelper.AGR_URL);
+            new Downloader(new AggregateDownloaderHelper(), context, this,null).execute(DownloaderHelper.AGR_URL);
             //setProgressBarIndeterminateVisibility(false);
         }
         else if (!offline) {    // Only show the offline dialog once.
@@ -406,6 +416,29 @@ public class MainActivity extends Activity {
             }
         }
     }
+
+
+    private Downloader.OnTaskCompleted listener_commentLoad = new Downloader.OnTaskCompleted() {
+        public void onTaskCompleted() {
+            findViewById(R.id.comment_loader).setVisibility(View.GONE);
+            if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "On comment is load");
+
+            BusManager sharedManager = BusManager.getBusManager();
+            //Toast.makeText(MainActivity.this, "Status: ", Toast.LENGTH_SHORT).show();
+            messageAdapter.clearnMessage();
+            for (Comment c : sharedManager.getComments()) {
+                messageAdapter.addMessage(c, MessageAdapter.DIRECTION_OUTGOING);
+            }
+
+            if (messageOtborEnable) {
+                if (busIdEstimate != null) {
+                    messageAdapter.getFilter().filter(busIdEstimate);
+                }
+            }else{
+                messageAdapter.getFilter().filter(null);
+            }
+        }
+    };
 
     public static void pieceDownloadsTogether(final Context context) {
         downloadsOnTheWire--;
@@ -634,14 +667,19 @@ public class MainActivity extends Activity {
                         }
                     }
                     */
-                    /*
+
                     SharedPreferences favoritePreferences = getSharedPreferences(Stop.FAVORITES_PREF, MODE_PRIVATE);
-                    if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Done parsing...");
+                    if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Restore favorite stop...");
                     for (Stop s : sharedManager.getStops()) {
                         boolean result = favoritePreferences.getBoolean(s.getID(), false);
-                        s.setFavorite(result);
+                        if (s.getID().equals(STOP_ID_ANY)){
+                            s.setFavorite(true);
+                        }else {
+                            s.setFavorite(result);
+                        }
                     }
-                    */
+
+
                     //new Downloader(new VersionDownloaderHelper(), context).execute(DownloaderHelper.VERSION_URL);
                     //setStartAndEndStops();
 
@@ -665,7 +703,7 @@ public class MainActivity extends Activity {
         messageAdapter = new MessageAdapter(this);
         messagesList.setAdapter(messageAdapter);
 
-    }
+    }//onCreate end
 
     @Override
     public void onStart() {
@@ -807,7 +845,7 @@ public class MainActivity extends Activity {
                                 new DownloaderArray(new TimeDownloaderHelper(busIdEstimate,2), getApplicationContext()).execute(DownloaderHelper.BUS_TIME_URL+busIdEstimate);
                             }
                             String lasttime = BusManager.getBusManager().getLastCommentTime();
-                            new Downloader(new CommentsDownloaderHelper(), getApplicationContext(), null).execute(DownloaderHelper.COMMENT_GET_URL+ lasttime );
+                            new Downloader(new CommentsDownloaderHelper(), getApplicationContext(), null,listener_commentLoad).execute(DownloaderHelper.COMMENT_GET_URL+ lasttime );
 
                             showBusOnMap();
                             //setProgressBarIndeterminateVisibility(false);
@@ -1860,6 +1898,9 @@ public class MainActivity extends Activity {
             }else{ //not in maps
                 ShowBus = Boolean.FALSE;
             }
+            if (b.outFromLine()){
+                ShowBus = Boolean.FALSE;
+            }
 
 
             // cluster start
@@ -2025,7 +2066,7 @@ public class MainActivity extends Activity {
 
     @SuppressWarnings("UnusedParameters")
     public void disableOtbor(View view) {
-        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Disable otbor.");
+        if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Disable otbor." + messageOtborEnable);
         BusManager sharedManager = BusManager.getBusManager();
 
         //https://github.com/sinch/android-messaging-tutorial
@@ -2035,13 +2076,13 @@ public class MainActivity extends Activity {
         input.setText(s);
         */
         if (messageOtborEnable) {
-            messageOtborEnable=true;
+            messageOtborEnable=false;
             messageAdapter.getFilter().filter(null);
 
             TextView input = (TextView) findViewById(R.id.comment_title);
             input.setText(getString(R.string.comments_all));
         }else{
-            messageOtborEnable=false;
+            messageOtborEnable=true;
             if (busIdEstimate!=null) {
                 messageAdapter.getFilter().filter(busIdEstimate);
                 Bus busEst = sharedManager.getBus(busIdEstimate);
@@ -2062,17 +2103,28 @@ public class MainActivity extends Activity {
         if (busIdEstimate!=null){
             BusManager sharedManager = BusManager.getBusManager();
             Bus busEst = sharedManager.getBus(busIdEstimate);
+            EditText inputText = (EditText) findViewById(R.id.comment_text); //message
+            String sendMessage = inputText.getText().toString();
+            if ((sendMessage!=null) && (sendMessage.length()>0)) {
+                // UI
+                findViewById(R.id.comment_loader).setVisibility(View.VISIBLE);
+                TextView loaderText = (TextView) findViewById(R.id.comment_loader_txtMessage);
+                loaderText.setText(sendMessage);
+                TextView loaderBus = (TextView) findViewById(R.id.comment_loader_txtSender);
+                loaderBus.setText(busEst.getTitle() + " " + busEst.getBody());
 
-            EditText inputText = (EditText) findViewById(R.id.comment_text);
-            String s = "";
-            s = s + busIdEstimate + "|";
-            s = s + busEst.getTitle() + "|";
-            s = s + busEst.getBody() + "|";
-            s = s + busEst.getRoute() + "|";
-            s = s + busEst.getLocation().toString() + "|";
-            s = s + inputText.getText().toString();
+                //POST to server
+                String s = "";
+                s = s + busIdEstimate + "|";
+                s = s + busEst.getTitle() + "|";
+                s = s + busEst.getBody() + "|";
+                s = s + busEst.getRoute() + "|";
+                s = s + busEst.getLocation().toString() + "|";
+                s = s + sendMessage;
 
-            new Poster().execute(s);
+                new Poster().execute(s);
+            }
+            //clean message input
             inputText.setText("");
 
         }

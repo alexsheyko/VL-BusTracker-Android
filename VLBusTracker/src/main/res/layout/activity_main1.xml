@@ -59,12 +59,12 @@
                     android:layout_width="0dip"
                     android:layout_height="fill_parent"
                     android:layout_weight="1"
-                    android:text="11"
+                    android:text="@string/comments_all"
                     android:textStyle="bold"
                     android:textSize="18.0sp"
                     android:textIsSelectable="false"
-                    android:background="@android:color/holo_blue_dark"
-                    android:textColor="@android:color/black" />
+                    android:background="#FF5497d5"
+                    android:textColor="@android:color/white" />
                 <ImageButton
                     android:layout_width="wrap_content"
                     android:src="@drawable/ic_action_select_all"
@@ -90,6 +90,64 @@
                 android:dividerHeight="0dp"
                 android:stackFromBottom="true"
                 tools:listitem="@layout/message_left"/>
+
+            <RelativeLayout
+                android:id="@+id/comment_loader"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="0dp"
+                android:padding="10dp"
+                android:visibility="gone"
+                android:background="@android:color/white">
+
+                <TextView
+                    android:id="@+id/comment_loader_txtSender"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:text="Sender"
+                    android:textSize="16sp"
+                    android:singleLine="true"
+                    android:layout_alignParentLeft="true"
+                    android:paddingLeft="10dp"
+                    android:paddingBottom="6dp"
+                    android:textColor="@android:color/black"
+                    android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/comment_loader_txtDate"
+                    android:layout_alignParentRight="true"
+                    android:textColor="@android:color/darker_gray"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingRight="2dp"
+                    android:paddingBottom="6dp"
+                    android:textSize="12sp"
+                    android:text="@string/do_load"
+                    android:layout_alignBottom="@+id/comment_loader_txtSender"/>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/comment_loader_txtSender"
+                    android:layout_alignParentLeft="true"
+                    android:padding="12dp"
+                    android:background="@drawable/grey_bubble"
+                    >
+
+                    <TextView
+                        android:id="@+id/comment_loader_txtMessage"
+                        android:paddingLeft="12dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/black"
+                        android:textSize="14sp"
+                        android:text="Hello"
+                        />
+
+                </RelativeLayout>
+            </RelativeLayout>
+
 
             <View android:id="@+id/form_comment_footer_shadow"
                 android:layout_width="fill_parent"
@@ -146,7 +204,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
-                android:hint="Выберите остановку"
+                android:hint="@string/select_stop"
                 android:inputType="textVisiblePassword">
            <!-- <requestFocus />
            -->

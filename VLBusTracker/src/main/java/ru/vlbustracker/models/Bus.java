@@ -22,12 +22,14 @@ public class Bus {
     private String body ="";
     ArrayList<Time> times = null;
     boolean hidden;
-    private long lastUpdateTime;
+    private long lastUpdateTime;    //for Estimate time
+    private long lastUpdateB;       //for bus out in night
     //private Integer last_update;
 
     public Bus(String mVehicleID) {
         vehicleID = mVehicleID;
         times = new ArrayList<Time>();
+        lastUpdateB=System.currentTimeMillis();
     }
     public static void parseJSONA(JSONArray devices) throws JSONException {
         BusManager sharedManager = BusManager.getBusManager();
@@ -36,6 +38,7 @@ public class Bus {
             for (Bus b : sharedManager.getBuses()) {
                 b.setHidden(true);
             }
+            if (MainActivity.LOCAL_LOGV) Log.v(MainActivity.REFACTOR_LOG_TAG, "Bus parse : " + devices.length() + " | : ");
             //load
             for(int i=0;i<devices.length();i++){
                 JSONArray d = devices.getJSONArray(i);
@@ -68,7 +71,7 @@ public class Bus {
                             .setTitle(busTitle)
                             .setHidden(hide)
                             .setBody(busBody);
-
+                    b.setLastUpdateB(System.currentTimeMillis());
 
                 }
             }
@@ -131,6 +134,10 @@ public class Bus {
         this.lastUpdateTime = time;
     }
 
+    public void setLastUpdateB(Long time) {
+        this.lastUpdateB = time;
+    }
+
     public void cleanTime() {
         times.clear();
     }
@@ -143,6 +150,13 @@ public class Bus {
         if((System.currentTimeMillis()-lastUpdateTime)>1000*60){
             return false;
         }else return true;
+
+    }
+
+    public Boolean outFromLine() {
+        if((System.currentTimeMillis()-lastUpdateB)>1000*60*30){
+            return true;
+        }else return false;
 
     }
 
