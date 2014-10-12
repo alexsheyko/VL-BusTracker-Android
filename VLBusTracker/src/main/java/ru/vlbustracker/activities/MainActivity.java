@@ -161,7 +161,7 @@ public class MainActivity extends Activity {
     public static int downloadsOnTheWire = 0;
     public static Handler UIHandler;
     private static final int BUSES_RELOAD_TIMEOUT = 10; //// в секундах
-    public static final String STOP_ID_ANY = "-any-"; //// в секундах
+    public static final String STOP_ID_ANY = "-any-";
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
