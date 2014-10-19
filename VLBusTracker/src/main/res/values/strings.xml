@@ -16,6 +16,8 @@
     <string name="thanks">Благодарности всем</string>
     <string name="unable_to_connect">Нет соединения с сетью.</string>
     <string name="no_stops_available">Извините. Остановки не доступны.</string>
+    <string name="setting_info">Настройки\n не реализованы \n\n Есть идеи?</string>
+    <string name="setting_rate">Отправить отзыв</string>
 
     <!--
     <string name="call_safe_ride">Tap to call Safe Ride</string>

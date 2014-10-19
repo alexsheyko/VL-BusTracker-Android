@@ -19,6 +19,7 @@ public class VLBusTrackerApplication extends Application {
         if (tracker == null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
             tracker = analytics.newTracker(R.xml.app_tracker);
+            tracker.setAppId(getString(R.string.google_analytics_tracker));
             /*String id = MainActivity.LOCAL_LOGV
                    ? getString(R.string.google_analytics_debug_tracker)
                     : getString(R.string.google_analytics_tracker);

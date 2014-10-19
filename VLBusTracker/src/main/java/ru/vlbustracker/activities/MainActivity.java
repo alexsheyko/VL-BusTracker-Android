@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ActivityNotFoundException;
 import android.content.res.Configuration;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -57,6 +58,8 @@ import android.widget.ViewSwitcher;
 
 //import com.flurry.android.FlurryAgent;
 import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdate;
@@ -176,7 +179,7 @@ public class MainActivity extends Activity {
     private Boolean messageOtborEnable = Boolean.FALSE;
 
     //public long lastComment;
-
+//http://sepulkary.com/google-play-rating-programmable/
     // Search EditText
     //EditText inputSearch;
 
@@ -283,8 +286,11 @@ public class MainActivity extends Activity {
                         if (SHOW_CLUSTER) {
                             mClusterManager.onMarkerClick(marker);
                         }
+                        String categoryId="null";
+                        String labelId = "-";
 
                         if (Stop2Mark.containsValue( marker)){
+                            categoryId="stop";
                             Iterator entries = Stop2Mark.entrySet().iterator();
                             String idmarker = marker.getId();
                             while (entries.hasNext()) {
@@ -297,12 +303,14 @@ public class MainActivity extends Activity {
                                         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Set stop Estimate " + key.toString() + "");
                                         stopIdEstimate = key.toString();
                                         ((TextView) findViewById(R.id.left_layout_title)).setText("Загружаем");
+                                        labelId=stopIdEstimate;
                                     }
                                 }
                             }
                         }
 
                         if (Bus2Mark.containsValue( marker)){
+                            categoryId="bus";
                             Iterator entries = Bus2Mark.entrySet().iterator();
                             String idmarker = marker.getId();
                             while (entries.hasNext()) {
@@ -314,14 +322,21 @@ public class MainActivity extends Activity {
                                         if (LOCAL_LOGV) Log.v(REFACTOR_LOG_TAG, "Set bus Estimate " + key.toString() + "");
                                         busIdEstimate = key.toString();
                                         ((TextView) findViewById(R.id.right_layout_title)).setText("Загружаем");
+                                        labelId=busIdEstimate;
                                     }
                                 }
                             }
                         }
 
-
-
                         marker.showInfoWindow();
+
+                        Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
+                        t.setScreenName("/Home");
+                        t.send(new HitBuilders.EventBuilder()
+                                .setCategory(categoryId)
+                                .setAction("click")
+                                .setLabel(labelId)
+                                .build());
 
                         return true;
                                 //!clickableMapMarkers.get(marker.getId());    // Return true to consume the event.
@@ -487,7 +502,7 @@ public class MainActivity extends Activity {
         if (mDrawerToggle != null && mDrawerToggle.onOptionsItemSelected(item))
             return true;
 
-        switch (item.getItemId()) {//UP-RIGHT MAIN MENU
+        switch (item.getItemId()) {//       *********   UP-RIGHT MAIN MENU
             case R.id.action_search:
                 openSearch();
                 return true;
@@ -526,7 +541,7 @@ public class MainActivity extends Activity {
                     openSearch();
                     return;
                 case 1:
-                    //createInfoDialog(null);
+                    createSettingDialog(null);
                     return;
                 case 2:
                     createInfoDialog(null);
@@ -588,7 +603,11 @@ public class MainActivity extends Activity {
         // По такому нажатию мы будем закрывать drawer.
         mDrawerList.setOnItemClickListener(new OnItemClickListener());
 
-        ((VLBusTrackerApplication) getApplication()).getTracker();
+        Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
+        t.setScreenName("/Home");
+        t.send(new HitBuilders.AppViewBuilder().build());
+
+
 
         Bus2Mark = new HashMap<String, Marker>();
         Stop2Mark = new HashMap<String, Marker>();
@@ -1650,12 +1669,20 @@ public class MainActivity extends Activity {
     public void closeComment() {
         findViewById(R.id.form_comment).setVisibility(View.GONE);
         findViewById(R.id.main_layout).setVisibility(View.VISIBLE);
+
+        Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
+        t.setScreenName(null);
+        //t.send(new HitBuilders.AppViewBuilder().build());
     }
 
     public void closeSearch() {
         findViewById(R.id.form_search).setVisibility(View.GONE);
         findViewById(R.id.main_layout).setVisibility(View.VISIBLE);
         //createStartDialog(null);
+        Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
+        t.setScreenName(null);
+        //t.send(new HitBuilders.AppViewBuilder().build());
+
     }
 
     public void openSearch(){
@@ -1703,6 +1730,10 @@ public class MainActivity extends Activity {
         dialog.setCanceledOnTouchOutside(true);
         dialog.show();
 */
+        Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
+        t.setScreenName("/search");
+        t.send(new HitBuilders.AppViewBuilder().build());
+
     }
 
     public void cleanEstiamate(){
@@ -1717,6 +1748,21 @@ public class MainActivity extends Activity {
         LinearLayout linearLayout = (LinearLayout) getLayoutInflater()
                 .inflate(
                         R.layout.information_layout,
+                        (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0),
+                        false
+                );
+        builder.setView(linearLayout);
+        Dialog dialog = builder.create();
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.show();
+    }
+
+    @SuppressWarnings("UnusedParameters")
+    public void createSettingDialog(View view) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        LinearLayout linearLayout = (LinearLayout) getLayoutInflater()
+                .inflate(
+                        R.layout.setting_layout,
                         (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0),
                         false
                 );
@@ -2161,12 +2207,15 @@ public class MainActivity extends Activity {
             EditText inputEdit = (EditText) findViewById(R.id.comment_text);
             inputEdit.setText("");
         }
+        Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
+        t.setScreenName("/comments");
+        t.send(new HitBuilders.AppViewBuilder().build());
     }
 
 
     @SuppressWarnings("UnusedParameters")
     public void goToGitHub(View view) {
-        String url = "https://github.com/alexsheyko/NYU-BusTracker-Android";
+        String url = "https://github.com/alexsheyko/VL-BusTracker-Android";
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setData(Uri.parse(url));
         startActivity(i);
@@ -2178,6 +2227,16 @@ public class MainActivity extends Activity {
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setData(Uri.parse(url));
         startActivity(i);
+    }
+    @SuppressWarnings("UnusedParameters")
+    public void goToRateMarket(View view) {
+        Uri uri = Uri.parse("market://details?id=" + getPackageName()); // Go to Android market
+        Intent goToMarket = new Intent(Intent.ACTION_VIEW, uri);
+        try {
+            startActivity(goToMarket);
+        } catch (ActivityNotFoundException e) {
+            //Toast.makeText(MainActivity.this, R.string.couldnt_rate, Toast.LENGTH_LONG).show();
+        }
     }
 
     private void deleteEverythingInMemory() {

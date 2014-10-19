@@ -44,7 +44,7 @@
         <meta-data
             android:name="com.google.android.gms.analytics.globalConfigResource"
             android:resource="@xml/global_tracker"/>
-
+<!--no widget
         <receiver android:name="ru.vlbustracker.provider.BusAppWidgetProvider" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -58,6 +58,7 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>
         </activity>
+-->
 
     </application>
 
