@@ -16,9 +16,20 @@
     <string name="thanks">Благодарности всем</string>
     <string name="unable_to_connect">Нет соединения с сетью.</string>
     <string name="no_stops_available">Извините. Остановки не доступны.</string>
-    <string name="setting_info">Настройки\n не реализованы \n\n Есть идеи?</string>
+    <string name="setting_info">Настройки:</string>
+    <string name="setting_time">Время обновления:</string>
+    <string name="setting_idea">\n\n Есть идеи?</string>
     <string name="setting_rate">Отправить отзыв</string>
-
+    <string name="setting_close">Закрыть</string>
+    <string-array name="setting_time_arrays">
+        <item>1 сек.</item>
+        <item>5 сек.</item>
+        <item>10 сек.</item>
+        <item>30 сек.</item>
+        <item>1 мин.</item>
+        <item>2 мин.</item>
+        <item>5 мин.</item>
+    </string-array>
     <!--
     <string name="call_safe_ride">Tap to call Safe Ride</string>
     <string name="default_start">Click to set start stop</string>

@@ -111,7 +111,6 @@ public class Downloader extends AsyncTask<String, Void, JSONObject> {
             conn.setConnectTimeout(15000 /* milliseconds */);
             conn.setRequestMethod("GET");
             conn.setDoInput(true);
-            //conn.setRequestProperty("X-Mashape-Authorization", context.getString(R.string.mashape_api_key));
             // Starts the QUERY
             conn.connect();
             //int response = conn.getResponseCode();

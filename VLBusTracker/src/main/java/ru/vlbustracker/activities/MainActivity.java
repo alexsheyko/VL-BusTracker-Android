@@ -51,6 +51,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -132,6 +133,7 @@ public class MainActivity extends Activity {
     private static final String START_STOP_PREF = "startStop";
     private static final String END_STOP_PREF = "endStop";
     private static final String ROUTE_PREF = "endStop";
+    private static final String TIMEOUT_PREF = "timeout";
     private static final String FIRST_TIME = "firstTime";
     public static final String REFACTOR_LOG_TAG = "refactor";
     public static final String LOG_TAG = "v_log_tag";
@@ -164,6 +166,7 @@ public class MainActivity extends Activity {
     public static int downloadsOnTheWire = 0;
     public static Handler UIHandler;
     private static final int BUSES_RELOAD_TIMEOUT = 10; //// в секундах
+    private int BUSES_RELOAD_TIMEOUT_USER = 10; //// в секундах
     public static final String STOP_ID_ANY = "-any-";
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -177,6 +180,7 @@ public class MainActivity extends Activity {
     private ListView messagesList;
     private MessageAdapter messageAdapter;
     private Boolean messageOtborEnable = Boolean.FALSE;
+    Spinner spinner_time;
 
     //public long lastComment;
 //http://sepulkary.com/google-play-rating-programmable/
@@ -541,7 +545,8 @@ public class MainActivity extends Activity {
                     openSearch();
                     return;
                 case 1:
-                    createSettingDialog(null);
+                    openSetting();
+                    //createSettingDialog(null);
                     return;
                 case 2:
                     createInfoDialog(null);
@@ -715,6 +720,7 @@ public class MainActivity extends Activity {
                     downloadEverything(true);
                 }
         }
+        createSpinners();
         renewBusRefreshTimer();
         createSearch();
 
@@ -746,6 +752,7 @@ public class MainActivity extends Activity {
             restoreStopCache();
         }
 
+
     }
 
     @Override
@@ -761,6 +768,7 @@ public class MainActivity extends Activity {
     @Override
     public void onStop() {
         super.onStop();
+        cacheStops();
         //        if (LOCAL_LOGV) Log.v("General Debugging", "onStop!");
         //GoogleAnalytics.getInstance(this).reportActivityStop(this);
         //FlurryAgent.onEndSession(this);
@@ -787,7 +795,11 @@ public class MainActivity extends Activity {
             if (findViewById(R.id.form_comment).getVisibility() == View.VISIBLE) {
                 closeComment();
             } else {
-                super.onBackPressed();
+                if (findViewById(R.id.form_setting).getVisibility() == View.VISIBLE) {
+                    closeSetting();
+                } else {
+                    super.onBackPressed();
+                }
             }
         }
     }
@@ -808,6 +820,7 @@ public class MainActivity extends Activity {
         }else{
             getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putString(ROUTE_PREF, "").apply();
         }
+        //getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putInt(TIMEOUT_PREF, BUSES_RELOAD_TIMEOUT).apply();
     }
 
     void sayBusIsOffline() {
@@ -841,6 +854,7 @@ public class MainActivity extends Activity {
     private void renewBusRefreshTimer() {
         if (busRefreshTimer != null) busRefreshTimer.cancel();
         if (busDownloadTimer != null) busDownloadTimer.cancel();
+        BUSES_RELOAD_TIMEOUT_USER = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getInt(TIMEOUT_PREF, BUSES_RELOAD_TIMEOUT);
 
         busDownloadTimer = new Timer();
         busDownloadTimer.scheduleAtFixedRate(new TimerTask() {
@@ -884,7 +898,7 @@ public class MainActivity extends Activity {
                     }
                 });
             }
-        }, 0, BUSES_RELOAD_TIMEOUT * 1000); //  1500L);
+        }, 0, BUSES_RELOAD_TIMEOUT_USER * 1000); //  1500L);
 
         busRefreshTimer = new Timer();
         busRefreshTimer.scheduleAtFixedRate(new TimerTask() {
@@ -939,6 +953,7 @@ public class MainActivity extends Activity {
         }else{
             routeSelect = null;
         }
+        //BUSES_RELOAD_TIMEOUT_USER = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getInt(TIMEOUT_PREF, BUSES_RELOAD_TIMEOUT);
         /*
         Location l = getLocation();
         if (l != null && System.currentTimeMillis() - onStartTime < 1000) {
@@ -1537,20 +1552,72 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void  createSearch(){
+    public void  createSpinners(){
+        //on create min time 5s
+        BUSES_RELOAD_TIMEOUT_USER = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getInt(TIMEOUT_PREF, BUSES_RELOAD_TIMEOUT);
+        if (BUSES_RELOAD_TIMEOUT_USER<10){
+            BUSES_RELOAD_TIMEOUT_USER=10;
+            getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putInt(TIMEOUT_PREF, BUSES_RELOAD_TIMEOUT_USER).apply();
+        }
+
+        spinner_time = (Spinner)findViewById(R.id.setting_time_spinner);
+        spinner_time.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view,
+                                               int pos, long id) {
+                        //int position = spnr.getSelectedItemPosition();
+                        //Toast.makeText(getApplicationContext(),"You  selected "+parent.getItemAtPosition(pos).toString()+Integer.toString(pos),Toast.LENGTH_SHORT).show();
+                        Integer Time;
+                        switch (pos){
+                            /*
+                                    <item>1 сек.</item>
+                                    <item>5 сек.</item>
+                                    <item>10 сек.</item>
+                                    <item>30 сек.</item>
+                                    <item>1 мин.</item>
+                                    <item>2 мин.</item>
+                                    <item>5 мин.</item>
+                            */
+                            case 0:Time=1; break;
+                            case 1:Time=5; break;
+                            case 2:Time=10; break;
+                            case 3:Time=30; break;
+                            case 4:Time=60; break;
+                            case 5:Time=120; break;
+                            case 6:Time=300; break;
+                            default:Time=10;
+                        }
+                        //BUSES_RELOAD_TIMEOUT_USER=Time;
+                        getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putInt(TIMEOUT_PREF, Time).apply();
+                        renewBusRefreshTimer();
+
+                        //Toast.makeText(parent.getContext(), "Selected Country : " + parent.getItemAtPosition(pos).toString(), Toast.LENGTH_SHORT).show();
+                    }
+                    @Override
+                    public void onNothingSelected(AdapterView<?> arg0) {
+                    }
+                }
+        );
+
+
+    }
+
+    public void  createSearch() {
         //************** START STOP
         EditText inputSearch = (EditText) findViewById(R.id.SearchStart);
         inputSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
                 // When user changed the Text
-                if (MainActivity.this.adapter_start!=null)
+                if (MainActivity.this.adapter_start != null)
                     MainActivity.this.adapter_start.getFilter().filter(cs);
             }
 
             @Override
-            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,int arg3) {
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
             }
+
             @Override
             public void afterTextChanged(Editable arg0) {
             }
@@ -1558,10 +1625,10 @@ public class MainActivity extends Activity {
         inputSearch.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(hasFocus){
+                if (hasFocus) {
                     //Toast.makeText(getApplicationContext(), "got the focus", Toast.LENGTH_LONG).show();
                     findViewById(R.id.start_stop1).setVisibility(View.VISIBLE);
-                }else {
+                } else {
                     //Toast.makeText(getApplicationContext(), "lost the focus", Toast.LENGTH_LONG).show();
                     findViewById(R.id.start_stop1).setVisibility(View.GONE);
 
@@ -1576,13 +1643,14 @@ public class MainActivity extends Activity {
             @Override
             public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
                 // When user changed the Text
-                if (MainActivity.this.adapter_end!=null)
+                if (MainActivity.this.adapter_end != null)
                     MainActivity.this.adapter_end.getFilter().filter(cs);
             }
 
             @Override
-            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,int arg3) {
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
             }
+
             @Override
             public void afterTextChanged(Editable arg0) {
             }
@@ -1590,10 +1658,10 @@ public class MainActivity extends Activity {
         inputSearch.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(hasFocus){
+                if (hasFocus) {
                     //Toast.makeText(getApplicationContext(), "got the focus", Toast.LENGTH_LONG).show();
                     findViewById(R.id.end_stop1).setVisibility(View.VISIBLE);
-                }else {
+                } else {
                     //Toast.makeText(getApplicationContext(), "lost the focus", Toast.LENGTH_LONG).show();
                     findViewById(R.id.end_stop1).setVisibility(View.GONE);
 
@@ -1605,13 +1673,14 @@ public class MainActivity extends Activity {
         inputSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
-                if (MainActivity.this.adapter_route!=null)
+                if (MainActivity.this.adapter_route != null)
                     MainActivity.this.adapter_route.getFilter().filter(cs);
             }
 
             @Override
-            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,int arg3) {
+            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
             }
+
             @Override
             public void afterTextChanged(Editable arg0) {
             }
@@ -1619,9 +1688,9 @@ public class MainActivity extends Activity {
         inputSearch.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(hasFocus){
+                if (hasFocus) {
                     findViewById(R.id.route_1).setVisibility(View.VISIBLE);
-                }else {
+                } else {
                     findViewById(R.id.route_1).setVisibility(View.GONE);
 
                 }
@@ -1633,6 +1702,8 @@ public class MainActivity extends Activity {
         setupUI(findViewById(R.id.form_search));
 
     }
+
+
 
     public static void hideSoftKeyboard(Activity activity) {
         InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -1672,17 +1743,23 @@ public class MainActivity extends Activity {
 
         Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
         t.setScreenName(null);
-        //t.send(new HitBuilders.AppViewBuilder().build());
     }
 
     public void closeSearch() {
         findViewById(R.id.form_search).setVisibility(View.GONE);
         findViewById(R.id.main_layout).setVisibility(View.VISIBLE);
-        //createStartDialog(null);
+
         Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
         t.setScreenName(null);
-        //t.send(new HitBuilders.AppViewBuilder().build());
+    }
 
+    //@SuppressWarnings("UnusedParameters") View view
+    public void closeSetting() {
+        findViewById(R.id.form_setting).setVisibility(View.GONE);
+        findViewById(R.id.main_layout).setVisibility(View.VISIBLE);
+
+        Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
+        t.setScreenName(null);
     }
 
     public void openSearch(){
@@ -1736,6 +1813,38 @@ public class MainActivity extends Activity {
 
     }
 
+    public void openSetting() {
+        findViewById(R.id.form_setting).setVisibility(View.VISIBLE);
+        findViewById(R.id.main_layout).setVisibility(View.GONE);
+
+        /*
+        <item>1 сек.</item>
+        <item>5 сек.</item>
+        <item>10 сек.</item>
+        <item>30 сек.</item>
+        <item>1 мин.</item>
+        <item>2 мин.</item>
+        <item>5 мин.</item>
+        */
+        Integer pos_spiner;
+        switch (BUSES_RELOAD_TIMEOUT_USER){
+            case 1:pos_spiner=0;break;
+            case 5:pos_spiner=1;break;
+            case 10:pos_spiner=2;break;
+            case 30:pos_spiner=3;break;
+            case 60:pos_spiner=4;break;
+            case 120:pos_spiner=5;break;
+            case 300:pos_spiner=6;break;
+            default:pos_spiner=2;
+        }
+        spinner_time.setSelection(pos_spiner);//012
+
+        Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
+        t.setScreenName("/setting");
+        t.send(new HitBuilders.AppViewBuilder().build());
+    }
+
+
     public void cleanEstiamate(){
         busIdEstimate = null;
         stopIdEstimate = null;
@@ -1757,6 +1866,7 @@ public class MainActivity extends Activity {
         dialog.show();
     }
 
+    /*
     @SuppressWarnings("UnusedParameters")
     public void createSettingDialog(View view) {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
@@ -1766,11 +1876,13 @@ public class MainActivity extends Activity {
                         (ViewGroup) ((ViewGroup) this.findViewById(android.R.id.content)).getChildAt(0),
                         false
                 );
+
         builder.setView(linearLayout);
         Dialog dialog = builder.create();
         dialog.setCanceledOnTouchOutside(true);
+        createSpinners();
         dialog.show();
-    }
+    }*/
 
     private Bitmap getIcoBus(String text,Float angle, Boolean hide) {
         //BitmapFactory.decodeResource(this.getResources(), R.drawable.ic_bus_arrow)
@@ -1897,7 +2009,7 @@ public class MainActivity extends Activity {
                     }
                 }
                 if (busEst.notExpireTime()){
-                    ((TextView) findViewById(R.id.right_layout_title)).setText(busEst.getTitle() + "   "+ busEst.getBody() );
+                    ((TextView) findViewById(R.id.right_layout_title)).setText(busEst.getTitle() + "   "+ busEst.getBody()+" ("+busEst.getLastUpdateBusStr()+")" );
                 }
 
             }

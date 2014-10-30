@@ -23,13 +23,14 @@ public class Bus {
     ArrayList<Time> times = null;
     boolean hidden;
     private long lastUpdateTime;    //for Estimate time
-    private long lastUpdateB;       //for bus out in night
+    private long lastUpdateProg;       //for bus out in night
+    private long lastUpdateBus;       //for bus out in night
     //private Integer last_update;
 
     public Bus(String mVehicleID) {
         vehicleID = mVehicleID;
         times = new ArrayList<Time>();
-        lastUpdateB=System.currentTimeMillis();
+        lastUpdateProg=System.currentTimeMillis();
     }
     public static void parseJSONA(JSONArray devices) throws JSONException {
         BusManager sharedManager = BusManager.getBusManager();
@@ -61,7 +62,7 @@ public class Bus {
                     String busHeading = d.getString(5);
                     String busTitle = d.getString(6);
                     String busBody = d.getString(1);
-                    Integer LastUpd = Integer.parseInt(d.getString(8));
+                    Long LastUpd = Long.parseLong(d.getString(8));
                     Boolean hide = true;
                     if (LastUpd<300) hide=false;
                     Bus b = sharedManager.getBus(vehicleID);
@@ -70,8 +71,9 @@ public class Bus {
                             .setRoute(busRoute)
                             .setTitle(busTitle)
                             .setHidden(hide)
+                            .setLastUpdateBus(LastUpd)
                             .setBody(busBody);
-                    b.setLastUpdateB(System.currentTimeMillis());
+                    b.setLastUpdateProg(System.currentTimeMillis());
 
                 }
             }
@@ -80,8 +82,8 @@ public class Bus {
     }
 
     public static void parseJSON(JSONObject vehiclesJson) throws JSONException {
-        BusManager sharedManager = BusManager.getBusManager();
-        if (vehiclesJson != null) {
+        //BusManager sharedManager = BusManager.getBusManager();
+        /*if (vehiclesJson != null) {
 
             //Log.v("BusLocations", " : " + vehiclesJson.length() + " | : ");
             /*
@@ -121,8 +123,8 @@ public class Bus {
                     //if (MainActivity.LOCAL_LOGV) Log.v("JSONDebug", "Bus ID: " + vehicleID + " | Heading: " + busHeading + " | (" + busLat + ", " + busLng + ")");
                 }
             }
-            */
-        }
+
+        }*/
     }
 
     Bus setLocation(String lat, String lng) {
@@ -134,8 +136,28 @@ public class Bus {
         this.lastUpdateTime = time;
     }
 
-    public void setLastUpdateB(Long time) {
-        this.lastUpdateB = time;
+    public void setLastUpdateProg(Long time) {
+        this.lastUpdateProg = time;
+    }
+    public Bus setLastUpdateBus(Long time) {
+        lastUpdateBus = time;
+        return this;
+    }
+
+    public long getLastUpdateBus() {
+        return this.lastUpdateBus;
+    }
+
+    public String getLastUpdateBusStr() {
+        if (lastUpdateBus<60){
+            return Long.toString(lastUpdateBus)+"сек.";
+        }else{
+            if (lastUpdateBus<3600){
+                return Long.toString(Math.round(lastUpdateBus/60))+"мин.";
+            }else{
+                return " >1ч.";
+            }
+        }
     }
 
     public void cleanTime() {
@@ -154,7 +176,7 @@ public class Bus {
     }
 
     public Boolean outFromLine() {
-        if((System.currentTimeMillis()-lastUpdateB)>1000*60*30){
+        if((System.currentTimeMillis()-lastUpdateProg)>1000*60*30){
             return true;
         }else return false;
 
