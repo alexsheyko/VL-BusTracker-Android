@@ -1,5 +1,6 @@
 package ru.vlbustracker.activities;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -134,6 +135,7 @@ public class MainActivity extends Activity {
     private static final String END_STOP_PREF = "endStop";
     private static final String ROUTE_PREF = "endStop";
     private static final String TIMEOUT_PREF = "timeout";
+    private static final String SOURCE_PREF = "source";
     private static final String FIRST_TIME = "firstTime";
     public static final String REFACTOR_LOG_TAG = "refactor";
     public static final String LOG_TAG = "v_log_tag";
@@ -167,6 +169,7 @@ public class MainActivity extends Activity {
     public static Handler UIHandler;
     private static final int BUSES_RELOAD_TIMEOUT = 10; //// в секундах
     private int BUSES_RELOAD_TIMEOUT_USER = 10; //// в секундах
+    private int BUSES_SOURCE_USER = 1; //откуда загружать автобусы
     public static final String STOP_ID_ANY = "-any-";
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -181,6 +184,7 @@ public class MainActivity extends Activity {
     private MessageAdapter messageAdapter;
     private Boolean messageOtborEnable = Boolean.FALSE;
     Spinner spinner_time;
+    Spinner spinner_src;
 
     //public long lastComment;
 //http://sepulkary.com/google-play-rating-programmable/
@@ -583,12 +587,18 @@ public class MainActivity extends Activity {
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 R.drawable.ic_drawer, R.string.drawer_open, R.string.drawer_close){
             public void onDrawerClosed(View view) {
-                getActionBar().setTitle(mTitle);
+                ActionBar actionBar = getActionBar();
+                if (actionBar != null) {
+                    actionBar.setTitle(mTitle);
+                }
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
 
             public void onDrawerOpened(View drawerView) {
-                getActionBar().setTitle(R.string.drawer_select);
+                ActionBar actionBar = getActionBar();
+                if (actionBar != null) {
+                    actionBar.setTitle(R.string.drawer_select);
+                }
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
         };
@@ -597,8 +607,11 @@ public class MainActivity extends Activity {
         //mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, Gravity.START);
 
         // Включим кнопки на action bar
-        getActionBar().setDisplayHomeAsUpEnabled(true);
-        getActionBar().setHomeButtonEnabled(true);
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeButtonEnabled(true);
+        }
 
         // Set the adapter for the list view
         //mDrawerList.setAdapter(new ArrayAdapter<String>(this,
@@ -671,9 +684,11 @@ public class MainActivity extends Activity {
                     //JSONObject segJson = new JSONObject(readSavedData(SegmentDownloaderHelper.SEGMENT_JSON_FILE));
                     //JSONObject verJson = new JSONObject(readSavedData(VersionDownloaderHelper.VERSION_JSON_FILE));
                     JSONObject argJson = new JSONObject(readSavedData(AggregateDownloaderHelper.ARG_JSON_FILE));
-                    Stop.parseJSON(argJson.getJSONObject("data"));
-                    Route.parseJSON(argJson.getJSONObject("data"));
-                    restoreStopCache(); // down setStartAndEndStops();
+                    if (argJson.has("data")) {
+                        Stop.parseJSON(argJson.getJSONObject("data"));
+                        Route.parseJSON(argJson.getJSONObject("data"));
+                        restoreStopCache(); // down setStartAndEndStops();
+                    }
 
                     //BusManager.parseSegments(segJson);
                     //BusManager.parseVersion(verJson);
@@ -855,6 +870,7 @@ public class MainActivity extends Activity {
         if (busRefreshTimer != null) busRefreshTimer.cancel();
         if (busDownloadTimer != null) busDownloadTimer.cancel();
         BUSES_RELOAD_TIMEOUT_USER = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getInt(TIMEOUT_PREF, BUSES_RELOAD_TIMEOUT);
+        BUSES_SOURCE_USER = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getInt(SOURCE_PREF, 1);
 
         busDownloadTimer = new Timer();
         busDownloadTimer.scheduleAtFixedRate(new TimerTask() {
@@ -870,7 +886,11 @@ public class MainActivity extends Activity {
                             //asv
                             //new Downloader(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.VEHICLES_URL);
                             //setProgressBarIndeterminateVisibility(true);
-                            new DownloaderArray(new BusDownloaderHelper(), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
+                            if (BUSES_SOURCE_USER == 2) {
+                                new Downloader(new BusDownloaderHelper(BUSES_SOURCE_USER), getApplicationContext(),null,null).execute(DownloaderHelper.BUS_VM_URL);
+                            } else{
+                                new DownloaderArray(new BusDownloaderHelper(BUSES_SOURCE_USER), getApplicationContext()).execute(DownloaderHelper.CUR_URL);
+                            }
                             if ((stopIdEstimate!=null)&&(stopIdEstimate.length()>0)){
                                 new DownloaderArray(new TimeDownloaderHelper(stopIdEstimate,1), getApplicationContext()).execute(DownloaderHelper.STOP_TIME_URL+stopIdEstimate);
                             }
@@ -1319,20 +1339,6 @@ public class MainActivity extends Activity {
         renewTimeUntilTimer();
     }
 
-    private void showSafeRideInfoIfNeeded(Time currentTime) {
-        if (!BusManager.getBusManager().isNotDuringSafeRide()) {
-            //((TextView) findViewById(R.id.next_route)).setText("");
-            //((TextView) findViewById(R.id.next_bus)).setText("");
-            /*
-            if (currentTime.getHour() < 7) {
-                findViewById(R.id.safe_ride_button).setVisibility(View.VISIBLE);
-            } else {
-                findViewById(R.id.safe_ride_button).setVisibility(View.GONE);
-            }
-            */
-        }
-    }
-
     private void printStop(){
         String str="";
         if (startStop==null){
@@ -1564,20 +1570,13 @@ public class MainActivity extends Activity {
         spinner_time.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
                     @Override
-                    public void onItemSelected(AdapterView<?> parent, View view,
-                                               int pos, long id) {
+                    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
                         //int position = spnr.getSelectedItemPosition();
                         //Toast.makeText(getApplicationContext(),"You  selected "+parent.getItemAtPosition(pos).toString()+Integer.toString(pos),Toast.LENGTH_SHORT).show();
                         Integer Time;
                         switch (pos){
-                            /*
-                                    <item>1 сек.</item>
-                                    <item>5 сек.</item>
-                                    <item>10 сек.</item>
-                                    <item>30 сек.</item>
-                                    <item>1 мин.</item>
-                                    <item>2 мин.</item>
-                                    <item>5 мин.</item>
+                            /*      <item>1 сек.</item><item>5 сек.</item><item>10 сек.</item><item>30 сек.</item>
+                                    <item>1 мин.</item><item>2 мин.</item><item>5 мин.</item>
                             */
                             case 0:Time=1; break;
                             case 1:Time=5; break;
@@ -1591,7 +1590,6 @@ public class MainActivity extends Activity {
                         //BUSES_RELOAD_TIMEOUT_USER=Time;
                         getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putInt(TIMEOUT_PREF, Time).apply();
                         renewBusRefreshTimer();
-
                         //Toast.makeText(parent.getContext(), "Selected Country : " + parent.getItemAtPosition(pos).toString(), Toast.LENGTH_SHORT).show();
                     }
                     @Override
@@ -1600,6 +1598,28 @@ public class MainActivity extends Activity {
                 }
         );
 
+        BUSES_SOURCE_USER = getSharedPreferences(STOP_PREF, MODE_PRIVATE).getInt(SOURCE_PREF, 1);
+        spinner_src = (Spinner)findViewById(R.id.setting_source_spinner);
+        spinner_src.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                        //int position = spnr.getSelectedItemPosition();
+                        Integer Src;
+                        switch (pos){
+                            case 0:Src=1; break;    //map.vl
+                            case 1:Src=2; break;    //bus125
+                            default:Src=1;
+                        }
+                        getSharedPreferences(STOP_PREF, MODE_PRIVATE).edit().putInt(SOURCE_PREF, Src).apply();
+                        renewBusRefreshTimer();
+                        //Toast.makeText(parent.getContext(), "Selected Country : " + parent.getItemAtPosition(pos).toString(), Toast.LENGTH_SHORT).show();
+                    }
+                    @Override
+                    public void onNothingSelected(AdapterView<?> arg0) {
+                    }
+                }
+        );
 
     }
 
@@ -1838,6 +1858,14 @@ public class MainActivity extends Activity {
             default:pos_spiner=2;
         }
         spinner_time.setSelection(pos_spiner);//012
+
+        Integer pos_src_spiner;
+        switch (BUSES_SOURCE_USER){
+            case 1:pos_src_spiner=0;break;
+            case 2:pos_src_spiner=1;break;
+            default:pos_src_spiner=0;
+        }
+        spinner_src.setSelection(pos_src_spiner);
 
         Tracker t=((VLBusTrackerApplication) getApplication()).getTracker();
         t.setScreenName("/setting");

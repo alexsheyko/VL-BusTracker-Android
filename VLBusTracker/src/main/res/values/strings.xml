@@ -18,6 +18,8 @@
     <string name="no_stops_available">Извините. Остановки не доступны.</string>
     <string name="setting_info">Настройки:</string>
     <string name="setting_time">Время обновления:</string>
+    <string name="setting_source">Данные с:</string>
+
     <string name="setting_idea">\n\n Есть идеи?</string>
     <string name="setting_rate">Отправить отзыв</string>
     <string name="setting_close">Закрыть</string>
@@ -29,6 +31,10 @@
         <item>1 мин.</item>
         <item>2 мин.</item>
         <item>5 мин.</item>
+    </string-array>
+    <string-array name="setting_source_arrays">
+        <item>Map.VL.ru</item>
+        <item>Bus125.ru</item>
     </string-array>
     <!--
     <string name="call_safe_ride">Tap to call Safe Ride</string>

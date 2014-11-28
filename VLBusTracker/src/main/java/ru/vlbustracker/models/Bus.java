@@ -82,49 +82,47 @@ public class Bus {
     }
 
     public static void parseJSON(JSONObject vehiclesJson) throws JSONException {
-        //BusManager sharedManager = BusManager.getBusManager();
-        /*if (vehiclesJson != null) {
-
-            //Log.v("BusLocations", " : " + vehiclesJson.length() + " | : ");
-            /*
-            //String str=EntityUtils.toString(rp.getEntity());
-            JSONArray devices = new JSONArray(str);
-            //js.length()
-            for(int i=0;i<devices.length();i++){
-                String d = devices.getString(i);
-                d = d.substring(1,-1);
-                String[] items = d.split(",");
-
-                Log.e(":", d);
-                Log.e(":", items[0]);
-                //Log.e(":", d[1]);
-                if (i>5){
-                    break;
-                }
+        BusManager sharedManager = BusManager.getBusManager();
+        if (vehiclesJson != null) {
+            //hide all
+            for (Bus b : sharedManager.getBuses()) {
+                b.setHidden(true);
             }
-            */
+            if (MainActivity.LOCAL_LOGV)
+                Log.v(MainActivity.REFACTOR_LOG_TAG, "Bus parse : " + vehiclesJson.length() + " | : ");
+            JSONArray devices = vehiclesJson.getJSONArray("anims");
+            //load
+            for (int i = 0; i < devices.length(); i++) {
+                JSONObject d = devices.getJSONObject(i);
+                //{"id":"1145",
+                // "lon":131901657,
+                // "lat":43118900,
+                // "dir":46,
+                // "lasttime":"28.11.2014 12:51:28",
+                // "gos_num":"",
+                // "rid":65,
+                // "rnum":"16Р¦",
+                // "rtype":"Рђ",
+                // "anim_key":44165,
+                // "big_jump":"0",
+                // "anim_points":[]}
+                Bus b = sharedManager.getBus(d.getString("id"));
+                String busLat = d.getString("lat");
+                String busLng = d.getString("lon");
+                busLat=busLat.substring(0,2)+"."+busLat.substring(2);
+                busLng=busLng.substring(0,3)+"."+busLng.substring(3);
+                Long LastUpd = Long.parseLong("0");
+                b.setHeading("0")                       //угол наклона
+                        .setLocation(busLat, busLng)
+                        .setRoute(d.getString("dir"))
+                        .setTitle(d.getString("rnum"))
+                        .setHidden(false)
+                        .setLastUpdateBus(LastUpd)
+                        .setBody(d.getString("rnum"));
 
-            /*
-            JSONObject jVehiclesData = vehiclesJson.getJSONObject(BusManager.TAG_DATA);
-            if (jVehiclesData != null && jVehiclesData.has("72")) {
-                JSONArray jVehicles = jVehiclesData.getJSONArray("72");
-                for (int j = 0; j < jVehicles.length(); j++) {
-                    JSONObject busObject = jVehicles.getJSONObject(j);
-                    JSONObject busLocation = busObject.getJSONObject(BusManager.TAG_LOCATION);
-                    String busLat = busLocation.getString(BusManager.TAG_LAT);
-                    String busLng = busLocation.getString(BusManager.TAG_LNG);
-                    String busRoute = busObject.getString(BusManager.TAG_ROUTE_ID);
-                    String vehicleID = busObject.getString(BusManager.TAG_VEHICLE_ID);
-                    String busHeading = busObject.getString(BusManager.TAG_HEADING);
-                    // getBus will either return an existing bus, or create a new one for us. We'll have to parse the bus JSON often.
-                    Bus b = sharedManager.getBus(vehicleID);
-                    b.setHeading(busHeading).setLocation(busLat, busLng).setRoute(busRoute);
-                    //if (MainActivity.LOCAL_LOGV) Log.v("BusLocations", "Parsing buses: bus id: " + vehicleID + " | bus' route: " + busRoute);
-                    //if (MainActivity.LOCAL_LOGV) Log.v("JSONDebug", "Bus ID: " + vehicleID + " | Heading: " + busHeading + " | (" + busLat + ", " + busLng + ")");
-                }
+                b.setLastUpdateProg(System.currentTimeMillis());
             }
-
-        }*/
+        }
     }
 
     Bus setLocation(String lat, String lng) {

@@ -16,8 +16,9 @@ public class CommentsDownloaderHelper implements DownloaderHelper {
 
     @Override
     public void parse(JSONObject jsonObject) throws JSONException, IOException {
-       // Bus.parseJSON(jsonObject);
-        Comment.parseJSON(jsonObject.getJSONObject("data"));
+        if (jsonObject.has("data")) {
+            Comment.parseJSON(jsonObject.getJSONObject("data"));
+        }
         //Route.parseJSON(jsonObject.getJSONObject("data"));
         //Downloader.cache(JSON_FILE, jsonObject);
     }

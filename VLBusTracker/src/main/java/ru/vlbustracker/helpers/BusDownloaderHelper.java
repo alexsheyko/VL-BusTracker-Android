@@ -9,9 +9,17 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 public class BusDownloaderHelper implements DownloaderHelper {
+    Integer Source =1;
+    public BusDownloaderHelper(Integer mSource){
+        Source=mSource;
+    }
+
     @Override
     public void parse(JSONObject jsonObject) throws JSONException, IOException {
-        //Bus.parseJSON(jsonObject);
+        if (Source==2){
+            Bus.parseJSON(jsonObject);
+        }
+
     }
     public void parseArray(JSONArray jsonObject) throws JSONException, IOException {
         Bus.parseJSONA(jsonObject);
